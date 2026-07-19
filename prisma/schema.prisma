@@ -1,0 +1,814 @@
+// jsyxi Platform — INC-1 schema
+// Canonical entities per spec §2. Enums per §3. Money = integer minor units (paise, INV-9);
+// rates = Decimal(9,4). Timestamps stored UTC (timestamptz), displayed in Workspace tz (§5, A1-10).
+// [LATER] entities are modeled for completeness but MUST NOT be read/written by INC-1 surfaces (INV-14).
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums (§3 status enums & fixed vocabularies)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  active
+  deactivated
+  pending_verification
+}
+
+enum WorkspaceStatus {
+  active
+  soft_deleted
+  purged
+}
+
+enum PurchaseMode {
+  single_app
+  all_access
+}
+
+enum WorkspaceRole {
+  owner
+  editor // [LATER]
+  viewer // [LATER]
+}
+
+enum MembershipStatus {
+  invited // [LATER]
+  active
+  removed
+}
+
+enum ProjectStatus {
+  active
+  archived
+} // [LATER]
+
+enum ToolStatus {
+  draft
+  published
+  retired
+}
+
+enum CategoryStatus {
+  active
+  hidden
+}
+
+enum WidgetLifecycle {
+  draft
+  published_active
+  published_suspended
+  unpublished
+  soft_deleted
+  purged
+}
+
+enum TemplateStatus {
+  draft
+  published
+  retired
+}
+
+enum BillingInterval {
+  monthly
+  annual
+}
+
+enum PlanStatus {
+  active
+  hidden
+  retired
+}
+
+enum SubscriptionState {
+  free
+  paid_active
+  cancelled
+  paid_grace // [LATER]
+}
+
+enum LeadSource {
+  quote
+  consultation
+  chat
+  whatsapp
+  lead_magnet
+  request_upgrade
+}
+
+enum LeadStage {
+  new
+  contacted
+  proposal
+  won
+  lost
+}
+
+enum AssignmentMode {
+  round_robin
+  manual
+}
+
+enum InvoiceStatus {
+  issued
+  paid
+  void
+}
+
+enum CouponType {
+  refer_a_friend
+  promo
+}
+
+enum CouponStatus {
+  active
+  expired
+  disabled
+}
+
+enum IncentiveKind {
+  referral
+  affiliate // [LATER]
+  reseller // [LATER]
+}
+
+enum IncentiveStatus {
+  active
+  paused
+}
+
+enum NotificationChannel {
+  in_app
+  email
+}
+
+enum TicketState {
+  open
+  pending // [LATER]
+  resolved
+  closed // [LATER]
+}
+
+enum StaffRole {
+  owner_admin
+  marketing
+  sales
+  support
+  content
+  finance
+}
+
+enum StaffStatus {
+  active
+  disabled
+}
+
+enum ContentType {
+  blog
+  tutorial
+  case_study
+  portfolio
+  help_article
+  landing
+}
+
+enum ContentStatus {
+  draft
+  published
+}
+
+enum ServiceProjectState {
+  active
+  delivered
+  closed
+} // [LATER]
+
+enum ShopifyPreviewStatus {
+  draft
+  preview
+  published
+} // [LATER]
+
+enum AuditActorType {
+  user
+  staff
+  system
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E1 User
+// ─────────────────────────────────────────────────────────────────────────────
+model User {
+  id                 String     @id @default(cuid())
+  email              String     @unique // stored lowercase, case-folded (INV: unique ci)
+  passwordHash       String
+  name               String
+  status             UserStatus @default(pending_verification)
+  emailVerifiedAt    DateTime?  @db.Timestamptz(6)
+  twoFactorSecret    String? // encrypted TOTP secret; null = 2FA disabled
+  twoFactorEnabledAt DateTime?  @db.Timestamptz(6)
+  defaultWorkspaceId String?
+  createdAt          DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime   @updatedAt @db.Timestamptz(6)
+
+  ownedWorkspaces  Workspace[]    @relation("WorkspaceOwner")
+  memberships      Membership[]
+  sessions         Session[]
+  verifications    VerificationToken[]
+  notifications    Notification[]
+  defaultWorkspace Workspace?     @relation("UserDefaultWorkspace", fields: [defaultWorkspaceId], references: [id])
+
+  @@index([defaultWorkspaceId])
+}
+
+// Auth support: server sessions + email/reset tokens (not a spec entity; auth plumbing)
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  hashedId  String   @unique // sha256 of the session token stored in the cookie
+  expiresAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  userAgent String?
+  ip        String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  hashed    String   @unique // sha256 of the token
+  purpose   String // email_verify | password_reset
+  expiresAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  consumedAt DateTime? @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E2 Workspace (top-level tenant, A1-04)
+// ─────────────────────────────────────────────────────────────────────────────
+model Workspace {
+  id               String          @id @default(cuid())
+  name             String
+  slug             String          @unique // global, ci, trimmed (stored lowercase)
+  ownerUserId      String
+  planId           String
+  purchaseMode     PurchaseMode    @default(all_access)
+  singleAppToolId  String? // required when purchaseMode = single_app (INV-5)
+  billingCurrency  String          @default("INR") // set at signup, immutable
+  timezone         String          @default("Asia/Kolkata")
+  gstin            String?
+  status           WorkspaceStatus @default(active)
+  createdAt        DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime        @updatedAt @db.Timestamptz(6)
+  deletedAt        DateTime?       @db.Timestamptz(6)
+
+  owner          User                  @relation("WorkspaceOwner", fields: [ownerUserId], references: [id])
+  plan           Plan                  @relation(fields: [planId], references: [id])
+  singleAppTool  Tool?                 @relation("WorkspaceSingleAppTool", fields: [singleAppToolId], references: [id])
+  defaultForUsers User[]               @relation("UserDefaultWorkspace")
+  memberships    Membership[]
+  projects       Project[]
+  widgets        Widget[]
+  subscriptions  Subscription[]
+  usageRolling   WorkspaceUsageRolling?
+  invoices       Invoice[]
+  leads          Lead[]
+  tickets        Ticket[]
+  viewDailyAggregates ViewDailyAggregate[]
+
+  @@index([ownerUserId])
+  @@index([planId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E3 Membership (INC-1: single Owner per Workspace; invites [LATER] RW-10)
+// ─────────────────────────────────────────────────────────────────────────────
+model Membership {
+  id           String           @id @default(cuid())
+  userId       String
+  workspaceId  String
+  workspaceRole WorkspaceRole   @default(owner)
+  projectScope Json? // [LATER] project scoping
+  invitedById  String?
+  status       MembershipStatus @default(active)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(6)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E4 Project [LATER]
+// ─────────────────────────────────────────────────────────────────────────────
+model Project {
+  id          String        @id @default(cuid())
+  workspaceId String
+  name        String
+  status      ProjectStatus @default(active)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  widgets   Widget[]
+
+  @@index([workspaceId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E6 ToolCategory (admin reference data)
+// ─────────────────────────────────────────────────────────────────────────────
+model ToolCategory {
+  id        String         @id @default(cuid())
+  name      String
+  slug      String         @unique
+  sortOrder Int            @default(0)
+  status    CategoryStatus @default(active)
+  tools     Tool[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E5 Tool (catalog type, admin-defined)
+// ─────────────────────────────────────────────────────────────────────────────
+model Tool {
+  id           String     @id @default(cuid())
+  key          String     @unique // slug
+  name         String
+  categoryId   String
+  badges       String[]   @default([])
+  description  String
+  configSchema Json // drives the builder tabs/fields
+  isAi         Boolean    @default(false)
+  status       ToolStatus @default(published)
+  sortOrder    Int        @default(0)
+  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+
+  category           ToolCategory @relation(fields: [categoryId], references: [id])
+  widgets            Widget[]
+  templates          Template[]
+  singleAppWorkspaces Workspace[] @relation("WorkspaceSingleAppTool")
+
+  @@index([categoryId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E8 Template (admin-seeded presets — INC-1 data, browsing panel [LATER])
+// ─────────────────────────────────────────────────────────────────────────────
+model Template {
+  id           String         @id @default(cuid())
+  toolId       String
+  name         String
+  useCase      String?
+  industry     String?
+  presetConfig Json
+  status       TemplateStatus @default(published)
+  sortOrder    Int            @default(0)
+
+  tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@index([toolId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E7 Widget (configured instance, metered + embedded)
+// ─────────────────────────────────────────────────────────────────────────────
+model Widget {
+  id              String          @id @default(cuid())
+  workspaceId     String
+  projectId       String? // [LATER]
+  toolId          String
+  name            String
+  embedKey        String          @unique // random, unguessable, never reused (A1-11)
+  draftConfig     Json            @default("{}")
+  publishedConfig Json? // null until first publish
+  allowedDomains  String[]        @default([]) // empty = any (RW-09 / INV-13)
+  lifecycleState  WidgetLifecycle @default(draft)
+  configVersion   Int             @default(0) // optimistic concurrency (INV-12)
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(6)
+  publishedAt     DateTime?       @db.Timestamptz(6)
+  deletedAt       DateTime?       @db.Timestamptz(6)
+
+  workspace       Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project         Project?             @relation(fields: [projectId], references: [id])
+  tool            Tool                 @relation(fields: [toolId], references: [id])
+  dailyAggregates ViewDailyAggregate[]
+  rawEvents       ViewEventRaw[]
+
+  @@index([workspaceId])
+  @@index([toolId])
+  @@index([lifecycleState])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E9 Plan (admin-defined tier)
+// ─────────────────────────────────────────────────────────────────────────────
+model Plan {
+  id              String          @id @default(cuid())
+  name            String
+  slug            String          @unique
+  purchaseMode    PurchaseMode    @default(all_access)
+  priceAmount     Int? // minor units (paise); null for Free
+  priceCurrency   String          @default("INR")
+  billingInterval BillingInterval @default(monthly)
+  annualDiscount  Int             @default(0) // minor units, F-ANNUAL
+  isFree          Boolean         @default(false)
+
+  // limits{}
+  maxWidgets      Int  @default(1)
+  maxMonthlyViews Int  @default(1000)
+  maxProjects     Int  @default(0)
+  maxMembers      Int  @default(1)
+  aiAccess        Boolean @default(false)
+
+  // entitlements{}
+  brandingRemovable Boolean @default(false)
+  prioritySupport   Boolean @default(false)
+  freeInstallation  Boolean @default(false)
+  hardViewCutoff    Boolean @default(false) // default off (F-LIMIT soft)
+
+  status    PlanStatus @default(active)
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now()) @db.Timestamptz(6)
+
+  workspaces    Workspace[]
+  subscriptions Subscription[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E10 Subscription (INC-1: manual admin assignment, A2-01)
+// ─────────────────────────────────────────────────────────────────────────────
+model Subscription {
+  id                 String            @id @default(cuid())
+  workspaceId        String
+  planId             String
+  state              SubscriptionState @default(free)
+  currentPeriodStart DateTime          @db.Timestamptz(6)
+  currentPeriodEnd   DateTime          @db.Timestamptz(6)
+  cancelScheduled    Boolean           @default(false)
+  assignedByAdminId  String? // INV-10: set for every paid assignment
+  manualPaymentRef   String? // INV-10
+  createdAt          DateTime          @default(now()) @db.Timestamptz(6)
+
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  plan            Plan       @relation(fields: [planId], references: [id])
+  assignedByAdmin StaffUser? @relation(fields: [assignedByAdminId], references: [id])
+
+  @@index([workspaceId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E11 ViewDailyAggregate (one row per widget per local day)
+// ─────────────────────────────────────────────────────────────────────────────
+model ViewDailyAggregate {
+  widgetId    String
+  date        DateTime @db.Date // Workspace-tz local day (§5)
+  workspaceId String
+  toolId      String
+  viewCount   Int      @default(0)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+  widget    Widget    @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@id([widgetId, date])
+  @@index([workspaceId, date])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E12 WorkspaceUsageRolling (maintained counter, INV-8)
+// ─────────────────────────────────────────────────────────────────────────────
+model WorkspaceUsageRolling {
+  workspaceId            String   @id
+  currentPeriodViewTotal Int      @default(0)
+  periodStart            DateTime @db.Timestamptz(6)
+  periodEnd              DateTime @db.Timestamptz(6)
+  lastRecomputedAt       DateTime @default(now()) @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E13 ViewEventRaw (90-day retention, S-RAW-RETENTION)
+// ─────────────────────────────────────────────────────────────────────────────
+model ViewEventRaw {
+  id          String   @id @default(cuid())
+  widgetId    String
+  occurredAt  DateTime @default(now()) @db.Timestamptz(6)
+  visitorHash String
+  pageHash    String
+  widget      Widget   @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+
+  @@unique([widgetId, visitorHash, pageHash, occurredAt])
+  @@index([widgetId, occurredAt])
+  @@index([occurredAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E15 LeadQueue (admin-managed routing)
+// ─────────────────────────────────────────────────────────────────────────────
+model LeadQueue {
+  id             String         @id @default(cuid())
+  name           String
+  slug           String         @unique
+  serviceTopicMap String[]      @default([]) // service_topic values routed here
+  isDefault      Boolean        @default(false)
+  assignmentMode AssignmentMode @default(manual)
+  sortOrder      Int            @default(0)
+  leads          Lead[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E14 Lead (inbound sales contact, CRM)
+// ─────────────────────────────────────────────────────────────────────────────
+model Lead {
+  id            String     @id @default(cuid())
+  source        LeadSource
+  serviceTopic  String?
+  contactName   String
+  contactEmail  String
+  contactPhone  String?
+  message       String?
+  scheduledSlot DateTime?  @db.Timestamptz(6) // consultation bookings (RW-11)
+  assignedQueueId String?
+  assignedUserId  String? // assigned staff (StaffUser)
+  pipelineStage LeadStage  @default(new)
+  lostReason    String?
+  workspaceId   String? // set when originated from a logged-in workspace (e.g. request-upgrade)
+  requestKey    String?    @unique // idempotency for double-submit (INV-12)
+  createdAt     DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime   @updatedAt @db.Timestamptz(6)
+
+  assignedQueue LeadQueue? @relation(fields: [assignedQueueId], references: [id])
+  assignedStaff StaffUser? @relation(fields: [assignedUserId], references: [id])
+  workspace     Workspace? @relation(fields: [workspaceId], references: [id])
+  notes         LeadNote[]
+
+  @@index([pipelineStage])
+  @@index([assignedQueueId])
+  @@index([source])
+}
+
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  body      String
+  authorStaffId String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E17 Invoice (admin-issued, GST, gap-free numbering)
+// ─────────────────────────────────────────────────────────────────────────────
+model Invoice {
+  id            String        @id @default(cuid())
+  workspaceId   String
+  invoiceNumber String        @unique // gap-free sequential per FY (INV-7)
+  financialYear String // e.g. "2026-27"
+  sequence      Int // sequence within FY
+  issueDate     DateTime      @default(now()) @db.Timestamptz(6)
+  currency      String        @default("INR")
+  lineItems     Json // [{description, qty, unitAmount, amount}]
+  subtotal      Int // minor units (taxable value)
+  gstAmount     Int // minor units (F-GST)
+  gstRate       Decimal       @db.Decimal(9, 4)
+  total         Int // minor units (GST-inclusive)
+  gstin         String?
+  status        InvoiceStatus @default(issued)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([financialYear, sequence])
+  @@index([workspaceId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E19 IncentiveProgram (INC-1: referral kind only, RW-14)
+// ─────────────────────────────────────────────────────────────────────────────
+model IncentiveProgram {
+  id              String          @id @default(cuid())
+  kind            IncentiveKind
+  name            String
+  rules           Json            @default("{}")
+  trackingEnabled Boolean         @default(true)
+  status          IncentiveStatus @default(active)
+  coupons         Coupon[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E18 Coupon (INC-1: admin-applied; program_id nullable, RW-14; no-stacking F-COUPON)
+// ─────────────────────────────────────────────────────────────────────────────
+model Coupon {
+  id          String       @id @default(cuid())
+  code        String       @unique // global, ci, trimmed (stored uppercase)
+  type        CouponType
+  value       Int // minor units OR percent*100 depending on valueKind
+  valueKind   String       @default("percent") // "percent" | "amount"
+  programId   String? // nullable in INC-1 (RW-14)
+  expiry      DateTime?    @db.Timestamptz(6)
+  status      CouponStatus @default(active)
+  createdAt   DateTime     @default(now()) @db.Timestamptz(6)
+
+  program IncentiveProgram? @relation(fields: [programId], references: [id])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E20 Notification (in-app + email)
+// ─────────────────────────────────────────────────────────────────────────────
+model Notification {
+  id             String                @id @default(cuid())
+  recipientUserId String
+  kind           String
+  channelSet     NotificationChannel[] @default([in_app])
+  subject        String?
+  body           String
+  blocking       Boolean               @default(false)
+  linkHref       String?
+  readAt         DateTime?             @db.Timestamptz(6)
+  emailSentAt    DateTime?             @db.Timestamptz(6)
+  createdAt      DateTime              @default(now()) @db.Timestamptz(6)
+
+  recipient User @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+
+  @@index([recipientUserId, readAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E21 Ticket (INC-1 stub scope: open -> resolved, RW-15)
+// ─────────────────────────────────────────────────────────────────────────────
+model Ticket {
+  id             String      @id @default(cuid())
+  workspaceId    String
+  subject        String
+  body           String
+  state          TicketState @default(open)
+  assignedStaffId String?
+  slaDueAt       DateTime?   @db.Timestamptz(6) // [LATER]
+  createdAt      DateTime    @default(now()) @db.Timestamptz(6)
+  resolvedAt     DateTime?   @db.Timestamptz(6)
+
+  workspace     Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignedStaff StaffUser? @relation(fields: [assignedStaffId], references: [id])
+  messages      TicketMessage[]
+
+  @@index([workspaceId])
+  @@index([state])
+}
+
+model TicketMessage {
+  id           String   @id @default(cuid())
+  ticketId     String
+  body         String
+  authorUserId String? // customer
+  authorStaffId String? // staff
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E22 StaffUser (internal identity, separate from E1 — RW-07)
+// ─────────────────────────────────────────────────────────────────────────────
+model StaffUser {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  staffRole    StaffRole
+  status       StaffStatus @default(active)
+  twoFactorSecret String?
+  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+
+  sessions          StaffSession[]
+  assignedLeads     Lead[]
+  assignedTickets   Ticket[]
+  authoredContent   ContentItem[]
+  assignedSubs      Subscription[]
+}
+
+model StaffSession {
+  id        String   @id @default(cuid())
+  staffId   String
+  hashedId  String   @unique
+  expiresAt DateTime @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  staff     StaffUser @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E23 ContentItem (marketing-site subset in INC-1)
+// ─────────────────────────────────────────────────────────────────────────────
+model ContentItem {
+  id            String        @id @default(cuid())
+  type          ContentType
+  title         String
+  slug          String        @unique
+  excerpt       String?
+  body          String        @db.Text
+  coverImage    String?
+  status        ContentStatus @default(draft)
+  authorStaffId String?
+  publishedAt   DateTime?     @db.Timestamptz(6)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(6)
+
+  author StaffUser? @relation(fields: [authorStaffId], references: [id])
+
+  @@index([type, status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Testimonial / Review moderation (marketing site dog-foods the Reviews Tool, RW-05)
+// Curated reviews shown on the marketing site; moderated by Marketing staff (§9.10).
+// ─────────────────────────────────────────────────────────────────────────────
+model SiteTestimonial {
+  id          String   @id @default(cuid())
+  authorName  String
+  authorRole  String?
+  rating      Int      @default(5)
+  body        String
+  approved    Boolean  @default(false)
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E24 AuditLogEntry (INV-11, §12)
+// ─────────────────────────────────────────────────────────────────────────────
+model AuditLogEntry {
+  id         String         @id @default(cuid())
+  actorType  AuditActorType
+  actorId    String?
+  actorLabel String
+  action     String
+  objectType String
+  objectId   String?
+  summary    String
+  before     Json?
+  after      Json?
+  occurredAt DateTime       @default(now()) @db.Timestamptz(6)
+
+  @@index([objectType, objectId])
+  @@index([occurredAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings register (§7) — DB-backed overrides of S-* keys
+// ─────────────────────────────────────────────────────────────────────────────
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E16 ServiceProject [LATER] — modeled, not used by INC-1 surfaces (INV-14)
+// ─────────────────────────────────────────────────────────────────────────────
+model ServiceProject {
+  id           String              @id @default(cuid())
+  leadId       String
+  workspaceId  String?
+  title        String
+  milestones   Json                @default("[]")
+  deliverables Json                @default("[]")
+  state        ServiceProjectState @default(active)
+  createdAt    DateTime            @default(now()) @db.Timestamptz(6)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// E25 ShopifyAppListing [LATER] — marketing surface only (A1-05)
+// ─────────────────────────────────────────────────────────────────────────────
+model ShopifyAppListing {
+  id            String               @id @default(cuid())
+  title         String
+  valueProp     String?
+  screenshots   String[]             @default([])
+  features      String[]             @default([])
+  integrations  String[]             @default([])
+  pricingDisplay String?
+  appStoreUrl   String?
+  previewStatus ShopifyPreviewStatus @default(draft)
+  createdAt     DateTime             @default(now()) @db.Timestamptz(6)
+}
