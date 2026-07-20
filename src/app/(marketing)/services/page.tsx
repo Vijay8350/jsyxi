@@ -47,7 +47,7 @@ export default async function ServicesPage() {
           <Reveal delay={80}>
             <h1 className="mx-auto mt-5 max-w-3xl text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
               Everything you need to{" "}
-              <span className="animate-gradient bg-gradient-to-r from-brand-600 via-violet-500 to-emerald-500 bg-clip-text text-transparent">
+              <span className="animate-gradient bg-gradient-to-r from-brand-700 via-brand-500 to-accent-400 bg-clip-text text-transparent">
                 build, launch & grow
               </span>
             </h1>
@@ -136,7 +136,7 @@ export default async function ServicesPage() {
       {/* CTA band */}
       <section className="mx-auto max-w-6xl px-4 py-20">
         <Reveal>
-          <div className="animate-gradient overflow-hidden rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-violet-600 px-8 py-14 text-center text-white sm:px-12">
+          <div className="animate-gradient overflow-hidden rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-accent-600 px-8 py-14 text-center text-white sm:px-12">
             <h2 className="text-3xl font-bold tracking-tight">Have a project in mind?</h2>
             <p className="mx-auto mt-3 max-w-xl text-brand-100">
               Tell us what you&apos;re building. You&apos;ll get a tailored plan and a clear, GST-inclusive quote — usually within one business day.

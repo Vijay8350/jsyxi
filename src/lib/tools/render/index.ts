@@ -91,7 +91,7 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
         ${r} .jw-card figcaption{display:flex;align-items:center;gap:10px;font-size:14px}
         ${r} .jw-card figcaption em{display:block;color:#94a3b8;font-style:normal;font-size:12px}
         ${r} .jw-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover}
-        ${r} .jw-avatar-ph{display:flex;align-items:center;justify-content:center;background:#e0e7ff;color:#4f46e5;font-weight:700}
+        ${r} .jw-avatar-ph{display:flex;align-items:center;justify-content:center;background:#cffafe;color:#0d9488;font-weight:700}
         ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
         ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
       return { mode: "block", html, css };
@@ -219,7 +219,7 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
     // ── Form ───────────────────────────────────────────────────────────────────
     case "form": {
       const fields = arr(config.fields);
-      const accent = col(config.accentColor, "#4f46e5");
+      const accent = col(config.accentColor, "#0d9488");
       const layout = String(config.layout ?? "stacked");
       const action = opts.embedKey ? `${apiBase}/api/embed/form/${opts.embedKey}` : "";
       const inputs = fields

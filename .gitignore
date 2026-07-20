@@ -45,3 +45,10 @@ next-env.d.ts
 
 # Local dev test helpers
 scripts/_*.ts
+
+# design-sync (generated)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules

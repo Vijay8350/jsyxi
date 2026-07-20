@@ -23,7 +23,7 @@ export function SiteHeader() {
           <Logo />
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
             {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className="hover:text-ink transition-colors">
+              <Link key={n.href} href={n.href} className="link-underline hover:text-brand-700 transition-colors">
                 {n.label}
               </Link>
             ))}

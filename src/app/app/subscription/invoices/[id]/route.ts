@@ -51,7 +51,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; background: #f8fafc; }
     .sheet { max-width: 760px; margin: 24px auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 40px; }
     .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
-    .brand { font-size: 22px; font-weight: 800; color: #4f46e5; letter-spacing: -0.02em; }
+    .brand { font-size: 22px; font-weight: 800; color: #0d9488; letter-spacing: -0.02em; }
     .muted { color: #64748b; font-size: 13px; }
     h1 { font-size: 18px; margin: 0 0 4px; }
     .meta { text-align: right; font-size: 13px; }
@@ -66,7 +66,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .totals div { display: flex; justify-content: space-between; padding: 6px 0; }
     .totals .grand { border-top: 2px solid #0f172a; margin-top: 6px; padding-top: 10px; font-weight: 700; font-size: 16px; }
     .foot { margin-top: 32px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-    .print-btn { position: fixed; top: 16px; right: 16px; background: #4f46e5; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .print-btn { position: fixed; top: 16px; right: 16px; background: #0d9488; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
     @media print { body { background: #fff; } .sheet { border: none; margin: 0; border-radius: 0; } .print-btn { display: none; } }
   </style>
 </head>

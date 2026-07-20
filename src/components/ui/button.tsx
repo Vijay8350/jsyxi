@@ -3,15 +3,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-colors focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-200 ease-out active:scale-[0.97] focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-50 disabled:active:scale-100",
   {
     variants: {
       variant: {
-        primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm",
-        accent: "bg-accent-600 text-white hover:bg-accent-500 shadow-sm",
-        secondary: "bg-white text-ink border border-line hover:bg-slate-50 shadow-sm",
-        ghost: "text-slate-600 hover:bg-slate-100 hover:text-ink",
-        danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
+        primary: "bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/25",
+        accent: "bg-accent-600 text-white shadow-sm hover:bg-accent-500 hover:shadow-lg hover:shadow-accent-500/25",
+        secondary: "bg-white text-ink border border-line shadow-sm hover:border-brand-300 hover:bg-brand-50/60 hover:text-brand-700",
+        ghost: "text-slate-600 hover:bg-brand-50 hover:text-brand-700",
+        danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/25",
         outlineDanger: "border border-red-200 text-red-600 hover:bg-red-50",
         link: "text-brand-600 hover:text-brand-700 underline-offset-4 hover:underline",
       },

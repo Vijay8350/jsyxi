@@ -21,8 +21,8 @@ export function UsageChart({ data }: { data: UsagePoint[] }) {
         <AreaChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
           <defs>
             <linearGradient id="usageFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.22} />
-              <stop offset="100%" stopColor="#4f46e5" stopOpacity={0} />
+              <stop offset="0%" stopColor="#0d9488" stopOpacity={0.22} />
+              <stop offset="100%" stopColor="#0d9488" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef1f5" />
@@ -52,7 +52,7 @@ export function UsageChart({ data }: { data: UsagePoint[] }) {
             labelStyle={{ color: "#0f172a", fontWeight: 600 }}
             formatter={(value) => [Number(value).toLocaleString("en-IN"), "Views"]}
           />
-          <Area type="monotone" dataKey="views" stroke="#4f46e5" strokeWidth={2} fill="url(#usageFill)" />
+          <Area type="monotone" dataKey="views" stroke="#0d9488" strokeWidth={2} fill="url(#usageFill)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

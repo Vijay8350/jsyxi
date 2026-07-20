@@ -130,7 +130,7 @@ export const TOOLS: ToolDef[] = [
         { key: "successMessage", label: "Success message", type: "textarea", group: "content", default: "Thanks! We'll be in touch soon." },
         { key: "layout", label: "Layout", type: "select", group: "layout", default: "stacked",
           options: [{ value: "stacked", label: "Stacked" }, { value: "inline", label: "Inline" }] },
-        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#4f46e5" },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
         { key: "captureAsLead", label: "Save submissions as leads", type: "toggle", group: "behaviour", default: true },
         { key: "serviceTopic", label: "Route to topic", type: "text", group: "behaviour", default: "", help: "Maps to a CRM lead queue." },
       ],
@@ -202,7 +202,7 @@ export const TOOLS: ToolDef[] = [
     defaultConfig: {},
     templates: [
       { name: "Flash Sale", useCase: "Limited offer", industry: "E-commerce", preset: { heading: "Flash sale ends in", accentColor: "#dc2626" } },
-      { name: "Launch Countdown", useCase: "Product launch", industry: "SaaS", preset: { heading: "Launching in", accentColor: "#4f46e5" } },
+      { name: "Launch Countdown", useCase: "Product launch", industry: "SaaS", preset: { heading: "Launching in", accentColor: "#0d9488" } },
     ],
   },
 
