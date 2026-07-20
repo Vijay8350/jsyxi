@@ -738,6 +738,24 @@ model ContentItem {
   @@index([type, status])
 }
 
+// Agency service offerings shown on the marketing site (admin-managed, dynamic).
+model Service {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  tagline     String?
+  summary     String        @db.Text
+  description String        @db.Text
+  icon        String        @default("sparkles")
+  features    String[]      @default([])
+  sortOrder   Int           @default(0)
+  status      ContentStatus @default(published)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(6)
+
+  @@index([status, sortOrder])
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Testimonial / Review moderation (marketing site dog-foods the Reviews Tool, RW-05)
 // Curated reviews shown on the marketing site; moderated by Marketing staff (§9.10).

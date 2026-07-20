@@ -31,6 +31,7 @@ export type AdminSection =
   | "leads" // Leads / CRM
   | "invoices"
   | "content" // Content / Blog / CMS
+  | "services" // Agency services (marketing site)
   | "reviews" // Reviews/testimonials moderation
   | "tickets" // Support (stub)
   | "roles" // Staff & roles
@@ -40,12 +41,12 @@ export type AdminSection =
 const STAFF_ROLE_SECTIONS: Record<StaffRole, AdminSection[]> = {
   owner_admin: [
     "dashboard", "workspaces", "catalog", "plans", "leads", "invoices",
-    "content", "reviews", "tickets", "roles", "settings", "audit",
+    "content", "services", "reviews", "tickets", "roles", "settings", "audit",
   ],
-  marketing: ["dashboard", "content", "reviews", "catalog"],
+  marketing: ["dashboard", "content", "services", "reviews", "catalog"],
   sales: ["dashboard", "leads", "workspaces"],
   support: ["dashboard", "tickets", "workspaces"],
-  content: ["dashboard", "content"],
+  content: ["dashboard", "content", "services"],
   finance: ["dashboard", "invoices", "plans", "workspaces"],
 };
 

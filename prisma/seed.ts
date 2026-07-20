@@ -334,6 +334,79 @@ async function seedDemoCustomer(planMap: Map<string, string>, toolMap: Map<strin
   console.log(`  demo customer: ${email} / jsyxi-demo (2 workspaces, 1 widget, ${total} views)`);
 }
 
+async function seedServices() {
+  if ((await prisma.service.count()) > 0) return;
+  const services = [
+    {
+      slug: "shopify-development", title: "Shopify Development", icon: "store",
+      tagline: "Stores that sell, built on Shopify.",
+      summary: "Custom Shopify themes, apps, and storefronts engineered for speed and conversion.",
+      description:
+        "From a brand-new store to a full replatform, we design and build high-converting Shopify experiences — custom themes, private apps, headless storefronts, and deep third-party integrations. Every build is fast, mobile-first, and ready to scale with your catalog.\n\nWe sweat the details that move revenue: Core Web Vitals, checkout UX, upsells, and clean data flowing into your marketing stack.",
+      features: ["Custom theme design & development", "Private & public app development", "Headless / Hydrogen storefronts", "Payment, shipping & ERP integrations", "Speed & Core Web Vitals tuning", "Migration from other platforms"],
+    },
+    {
+      slug: "ecommerce-development", title: "E-commerce Development", icon: "cart",
+      tagline: "Sell anywhere, on any platform.",
+      summary: "End-to-end online stores on WooCommerce, Magento, or a fully custom stack.",
+      description:
+        "Not on Shopify? No problem. We build robust e-commerce platforms on WooCommerce, Magento, or a bespoke headless stack — with catalog management, secure checkout, and the integrations your operations need.\n\nWe design for conversion and build for scale, so your store stays fast whether you sell ten products or ten thousand.",
+      features: ["WooCommerce & Magento builds", "Custom cart & checkout flows", "Product & inventory management", "Multi-currency & multi-region", "Payment gateway integration", "Analytics & conversion tracking"],
+    },
+    {
+      slug: "software-development", title: "Software Development", icon: "code",
+      tagline: "Custom software, built to fit.",
+      summary: "Bespoke web platforms and internal tools tailored to your exact workflow.",
+      description:
+        "When off-the-shelf tools don't fit, we build software that does. From SaaS platforms to internal dashboards and automation, our team ships secure, maintainable code with modern architecture and thorough testing.\n\nYou get a technical partner who plans, builds, and iterates with you — not just a vendor.",
+      features: ["Web & SaaS platform development", "API design & integrations", "Workflow & process automation", "Cloud-native architecture", "Automated testing & CI/CD", "Ongoing maintenance & support"],
+    },
+    {
+      slug: "custom-crm-development", title: "Custom CRM Development", icon: "crm",
+      tagline: "A CRM shaped around your sales process.",
+      summary: "Tailor-made CRM systems that match how your team actually sells.",
+      description:
+        "Generic CRMs force you to work their way. We build CRM systems around your pipeline — custom stages, automation, lead routing, and reporting — so your team spends time selling, not fighting software.\n\nEverything integrates with your website, forms, and marketing tools for a single source of truth.",
+      features: ["Custom pipelines & stages", "Lead capture & auto-routing", "Task & follow-up automation", "Role-based access control", "Dashboards & sales reporting", "Email, WhatsApp & telephony integration"],
+    },
+    {
+      slug: "system-application-development", title: "System Application Development", icon: "app",
+      tagline: "Enterprise systems that run your operation.",
+      summary: "ERP, inventory, and operations software that ties your business together.",
+      description:
+        "We build the backbone systems that keep operations running — ERP modules, inventory and warehouse management, billing, and internal portals — engineered for reliability and real-time visibility.\n\nBuilt to integrate with your existing tools and to grow as your processes mature.",
+      features: ["ERP & inventory systems", "Billing & invoicing modules", "Warehouse & logistics tools", "Real-time dashboards & reports", "Role & permission management", "Third-party system integration"],
+    },
+    {
+      slug: "server-network-solutions", title: "Server & Network Solutions", icon: "server",
+      tagline: "Infrastructure that stays up.",
+      summary: "Cloud servers, deployment, security, and monitoring — set up and managed right.",
+      description:
+        "From provisioning cloud servers to hardening security and setting up CI/CD, we handle the infrastructure so your applications stay fast, secure, and always on.\n\nWe design for uptime and cost-efficiency, with monitoring and backups that let you sleep at night.",
+      features: ["Cloud server setup (AWS, GCP, VPS)", "Deployment & CI/CD pipelines", "SSL, firewalls & hardening", "Load balancing & scaling", "Monitoring, alerts & backups", "Network architecture & DNS"],
+    },
+    {
+      slug: "mobile-app-development", title: "Mobile App Development", icon: "mobile",
+      tagline: "Apps your customers keep on the home screen.",
+      summary: "Native and cross-platform mobile apps for iOS and Android.",
+      description:
+        "We design and build mobile apps that feel great and perform — native or cross-platform (React Native / Flutter) — with clean UX, offline support, and secure backends.\n\nFrom concept to App Store and Play Store launch, we handle the whole journey.",
+      features: ["iOS & Android development", "React Native & Flutter", "UI/UX design", "Push notifications & offline mode", "Secure API & backend", "App Store & Play Store launch"],
+    },
+    {
+      slug: "digital-marketing-seo", title: "Digital Marketing & SEO", icon: "seo",
+      tagline: "Get found. Get clicks. Get customers.",
+      summary: "SEO, performance marketing, and content that grows qualified traffic.",
+      description:
+        "Great products need to be found. We grow your organic and paid reach with technical SEO, content strategy, and performance campaigns — all measured against revenue, not vanity metrics.\n\nYou get a clear monthly report and a team obsessed with your pipeline.",
+      features: ["Technical & on-page SEO", "Keyword & content strategy", "Google & Meta ad campaigns", "Local SEO & Google Business", "Conversion rate optimization", "Monthly reporting & insights"],
+    },
+  ];
+  await prisma.service.createMany({
+    data: services.map((s, i) => ({ ...s, sortOrder: i, status: "published" as const })),
+  });
+}
+
 async function main() {
   console.log("Seeding jsyxi day-one state…");
   const categoryMap = await seedCategories();
@@ -351,6 +424,8 @@ async function main() {
   await seedTestimonials();
   await seedContent(staffMap);
   console.log("  marketing content + testimonials");
+  await seedServices();
+  console.log("  agency services: 8");
   await seedDemoCustomer(planMap, toolMap);
   console.log("Done.");
 }
