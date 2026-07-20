@@ -5,6 +5,10 @@ import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { ArticleBody, DualCta } from "@/components/marketing/sections";
 
+// ISR + on-demand revalidation (admin publish purges this path). New slugs not in
+// generateStaticParams render on demand (dynamicParams defaults to true).
+export const revalidate = 300;
+
 type Params = { params: Promise<{ slug: string }> };
 
 async function getPost(slug: string) {

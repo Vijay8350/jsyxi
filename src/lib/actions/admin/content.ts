@@ -20,6 +20,25 @@ const contentSchema = z.object({
   status: z.enum(["draft", "published"]),
 });
 
+// Public marketing routes that render a given content type — revalidated so a
+// publish/edit/delete shows on the live site immediately (the listings are cached).
+function publicPathsFor(type: string, slug: string): string[] {
+  switch (type) {
+    case "blog":
+      return ["/blog", `/blog/${slug}`];
+    case "case_study":
+      return ["/case-studies", `/case-studies/${slug}`];
+    case "help_article":
+      return ["/help", `/help/${slug}`];
+    default:
+      return [];
+  }
+}
+
+function revalidatePublic(paths: string[]) {
+  for (const p of new Set(paths)) revalidatePath(p);
+}
+
 export async function saveContentAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const guard = await requireStaffSection("content");
   if (!guard.ok) return fail(guard.error);
@@ -57,7 +76,9 @@ export async function saveContentAction(_prev: ActionState, formData: FormData):
       after: { title: d.title, status: d.status },
     });
     revalidatePath("/admin/content");
-    return succeed("Content saved.");
+    // Purge both the old and new public locations (covers rename / type change / unpublish).
+    revalidatePublic([...publicPathsFor(before.type, before.slug), ...publicPathsFor(d.type, slug)]);
+    return succeed(d.status === "published" ? "Saved & live on the site." : "Saved as draft.");
   }
 
   const created = await prisma.contentItem.create({
@@ -76,5 +97,28 @@ export async function saveContentAction(_prev: ActionState, formData: FormData):
     after: { title: d.title, slug, status: d.status },
   });
   revalidatePath("/admin/content");
-  return succeed("Content created.");
+  revalidatePublic(publicPathsFor(d.type, slug));
+  return succeed(d.status === "published" ? "Created & live on the site." : "Created as draft.");
+}
+
+// Delete a content item (and purge it from the live site). Callable from the client editor.
+export async function deleteContentAction(contentId: string): Promise<void> {
+  const guard = await requireStaffSection("content");
+  if (!guard.ok) return;
+
+  const item = await prisma.contentItem.findUnique({ where: { id: contentId } });
+  if (!item) return;
+
+  await prisma.contentItem.delete({ where: { id: contentId } });
+  await writeAudit({
+    actor: staffActor(guard.staff),
+    action: "content.delete",
+    objectType: "ContentItem",
+    objectId: contentId,
+    summary: `Deleted ${item.type} "${item.title}"`,
+    before: { title: item.title, slug: item.slug, status: item.status },
+  });
+
+  revalidatePath("/admin/content");
+  revalidatePublic(publicPathsFor(item.type, item.slug));
 }

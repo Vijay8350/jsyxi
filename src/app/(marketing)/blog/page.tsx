@@ -12,6 +12,10 @@ export const metadata: Metadata = {
     "Practical guides on no-code growth: reviews, lead-gen, popups, countdowns, and conversion tips for online businesses.",
 };
 
+// ISR safety-net: refresh at most every 5 min. Publishing from admin also purges this
+// path on-demand (revalidatePath), so new posts appear immediately.
+export const revalidate = 300;
+
 function formatDate(d: Date | null): string {
   if (!d) return "";
   return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });

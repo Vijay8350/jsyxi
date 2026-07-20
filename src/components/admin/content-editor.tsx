@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { Pencil, Plus } from "lucide-react";
-import { saveContentAction } from "@/lib/actions/admin/content";
+import { useActionState, useTransition } from "react";
+import Link from "next/link";
+import { Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
+import { saveContentAction, deleteContentAction } from "@/lib/actions/admin/content";
 import { initialActionState } from "@/lib/actions/result";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
@@ -23,6 +25,14 @@ export type ContentValues = {
 };
 
 const TYPES: ContentValues["type"][] = ["blog", "tutorial", "case_study", "portfolio", "help_article", "landing"];
+
+// The public URL a published item is visible at (null if the type has no public listing).
+function livePath(type: ContentValues["type"], slug: string): string | null {
+  if (type === "blog") return `/blog/${slug}`;
+  if (type === "case_study") return `/case-studies/${slug}`;
+  if (type === "help_article") return `/help/${slug}`;
+  return null;
+}
 
 function ContentFields({ c }: { c?: ContentValues }) {
   const uid = c?.id ?? "new";
@@ -65,6 +75,9 @@ function ContentFields({ c }: { c?: ContentValues }) {
 
 export function ContentEditor({ item }: { item: ContentValues }) {
   const [state, action] = useActionState(saveContentAction, initialActionState);
+  const [deleting, startDelete] = useTransition();
+  const live = item.status === "published" ? livePath(item.type, item.slug) : null;
+
   return (
     <details className="group border-b border-line last:border-0">
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-slate-50">
@@ -79,7 +92,32 @@ export function ContentEditor({ item }: { item: ContentValues }) {
           {state.error && <Alert tone="error">{state.error}</Alert>}
           {state.ok && state.message && <Alert tone="success">{state.message}</Alert>}
           <ContentFields c={item} />
-          <SubmitButton size="sm" pendingText="Saving…">Save</SubmitButton>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <SubmitButton size="sm" pendingText="Saving…">Save</SubmitButton>
+            {live && (
+              <Link
+                href={live}
+                target="_blank"
+                className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+              >
+                <ExternalLink className="h-4 w-4" /> View live
+              </Link>
+            )}
+            <Button
+              type="button"
+              variant="outlineDanger"
+              size="sm"
+              disabled={deleting}
+              className="ml-auto"
+              onClick={() => {
+                if (confirm(`Delete "${item.title}"? This removes it from the site and cannot be undone.`)) {
+                  startDelete(() => { void deleteContentAction(item.id); });
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          </div>
         </form>
       </div>
     </details>
