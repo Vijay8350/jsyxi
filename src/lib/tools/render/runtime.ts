@@ -318,6 +318,30 @@ export const EMBED_RUNTIME_JS = `
     apply();
   }
 
+  function initStoreLocator(root){
+    var el=q(root,'.jw-sl'); if(!el) return;
+    var frame=q(el,'.jw-slframe'); if(!frame) return;
+    qa(el,'.jw-slbtn').forEach(function(btn){btn.addEventListener('click',function(){
+      var qv=btn.getAttribute('data-q')||'';
+      frame.src='https://maps.google.com/maps?q='+qv+'&z=15&output=embed';
+      qa(el,'.jw-slitem').forEach(function(it){it.classList.remove('jw-active')});
+      if(btn.parentNode)btn.parentNode.classList.add('jw-active');
+    })});
+  }
+
+  function initVisitors(root){
+    var el=q(root,'.jw-visitors'); if(!el) return;
+    var numEl=q(el,'.jw-vnum'); if(!numEl) return;
+    var preview=el.getAttribute('data-preview')==='1';
+    var sep=el.getAttribute('data-sep')==='true';
+    var offset=parseFloat(el.getAttribute('data-offset'))||0;
+    var key=el.getAttribute('data-key')||'', api=el.getAttribute('data-api')||'', metric=el.getAttribute('data-metric')||'total';
+    function fmt(n){var s=''+Math.round(n);return sep?sepnum(s):s}
+    function animate(target){var dur=1400,start=null;function step(ts){if(start===null)start=ts;var p=Math.min(1,(ts-start)/dur);var e=1-Math.pow(1-p,3);numEl.textContent=fmt(target*e);if(p<1)requestAnimationFrame(step);else numEl.textContent=fmt(target)}requestAnimationFrame(step)}
+    if(preview||!key||!api){animate(offset>0?offset:1240);return}
+    fetch(api+'/api/embed/stats/'+key).then(function(res){return res.json()}).then(function(d){if(!d||!d.ok){animate(offset);return}var real=metric==='today'?(d.today||0):(d.total||0);animate(real+offset)}).catch(function(){animate(offset)});
+  }
+
   window.__jsyxiInit=function(root,tool,opts){
     opts=opts||{};
     try{
@@ -340,6 +364,8 @@ export const EMBED_RUNTIME_JS = `
       else if(tool==='calendar')initCalendar(root);
       else if(tool==='jobs')initJobs(root);
       else if(tool==='accessibility')initAccessibility(root);
+      else if(tool==='storelocator')initStoreLocator(root);
+      else if(tool==='visitors')initVisitors(root);
     }catch(e){ if(window.console)console.warn('jsyxi init',e) }
   };
 })();

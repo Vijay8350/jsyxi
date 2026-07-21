@@ -1042,6 +1042,80 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
       return { mode: "overlay", html, css };
     }
 
+    // ── Store Locator ──────────────────────────────────────────────────────────
+    case "storelocator": {
+      const stores = arr(config.stores);
+      const accent = col(config.accentColor, "#0d9488");
+      const mh = Math.max(240, Math.min(720, num(config.mapHeight, 420)));
+      const side = String(config.mapSide ?? "right");
+      const dir = bool(config.showDirections, true);
+      const q0 = encodeURIComponent(String((stores[0] && stores[0].address) || "India Gate, New Delhi"));
+      const items = stores.map((s, i) => {
+        const q = encodeURIComponent(String(s.address ?? ""));
+        return `<div class="jw-slitem${i === 0 ? " jw-active" : ""}">
+          <button class="jw-slbtn" type="button" data-q="${q}"><b>${esc(s.name)}</b>${s.address ? `<span class="jw-sladdr">${esc(s.address)}</span>` : ""}<span class="jw-slmeta">${s.phone ? `<span>${esc(s.phone)}</span>` : ""}${s.hours ? `<span>${esc(s.hours)}</span>` : ""}</span></button>
+          ${dir ? `<a class="jw-sldir" href="https://maps.google.com/maps?q=${q}" target="_blank" rel="noopener">Directions →</a>` : ""}
+        </div>`;
+      }).join("");
+      const html = `<div class="jw jw-sl jw-side-${side}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-slwrap">
+          <div class="jw-sllist">${items}</div>
+          <div class="jw-slmap"><iframe class="jw-slframe" title="map" src="https://maps.google.com/maps?q=${q0}&z=14&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+        </div>${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-sl{font-family:inherit}
+        ${r} .jw-heading{font-size:22px;font-weight:800;margin:0 0 16px;color:#0f172a}
+        ${r} .jw-slwrap{display:flex;gap:16px;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;background:#fff}
+        ${r} .jw-side-left .jw-slwrap{flex-direction:row-reverse}
+        ${r} .jw-sllist{flex:0 0 40%;max-width:40%;max-height:${mh}px;overflow-y:auto;padding:8px}
+        ${r} .jw-slitem{border-radius:12px;padding:2px}
+        ${r} .jw-slitem.jw-active{background:${accent}12}
+        ${r} .jw-slbtn{width:100%;text-align:left;background:none;border:0;cursor:pointer;padding:12px;display:block;border-radius:10px}
+        ${r} .jw-slitem.jw-active .jw-slbtn b{color:${accent}}
+        ${r} .jw-slbtn b{font-size:15px;color:#0f172a}
+        ${r} .jw-sladdr{display:block;font-size:13px;color:#64748b;margin-top:3px}
+        ${r} .jw-slmeta{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font-size:12px;color:#94a3b8}
+        ${r} .jw-sldir{display:inline-block;margin:0 12px 10px;font-size:13px;font-weight:600;color:${accent};text-decoration:none}
+        ${r} .jw-slmap{flex:1}
+        ${r} .jw-slframe{width:100%;height:${mh}px;border:0;display:block}
+        ${r} .jw-brand{margin-top:14px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}
+        @media(max-width:640px){${r} .jw-slwrap,${r} .jw-side-left .jw-slwrap{flex-direction:column}${r} .jw-sllist{flex:none;max-width:100%;max-height:220px}}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Visitor Counter ────────────────────────────────────────────────────────
+    case "visitors": {
+      const accent = col(config.accentColor, "#0d9488");
+      const layout = String(config.layout ?? "card");
+      const offset = num(config.startOffset, 0);
+      const metric = String(config.metric ?? "total");
+      const html = `<div class="jw jw-visitors jw-vl-${layout}" data-key="${esc(opts.embedKey ?? "")}" data-api="${esc(apiBase)}" data-metric="${esc(metric)}" data-offset="${offset}" data-sep="${bool(config.separator, true)}" data-preview="${opts.preview ? 1 : 0}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-vbox">
+          ${config.icon ? `<span class="jw-vicon">${esc(config.icon)}</span>` : ""}
+          <div class="jw-vtext"><span class="jw-vnum">0</span><span class="jw-vlabel">${esc(config.label || "Total visitors")}</span></div>
+        </div>${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-visitors{font-family:inherit}
+        ${r} .jw-heading{font-size:18px;font-weight:700;margin:0 0 12px;color:#0f172a;text-align:center}
+        ${r} .jw-vbox{display:inline-flex;align-items:center;gap:14px}
+        ${r} .jw-vl-card .jw-vbox{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:20px 26px;box-shadow:0 6px 20px -12px rgba(13,148,136,.4)}
+        ${r} .jw-vl-badge .jw-vbox{background:${accent}12;border-radius:999px;padding:8px 18px;gap:10px}
+        ${r} .jw-visitors{text-align:center}
+        ${r} .jw-vicon{font-size:30px}
+        ${r} .jw-vl-badge .jw-vicon{font-size:18px}
+        ${r} .jw-vtext{display:flex;flex-direction:column;line-height:1.1;text-align:left}
+        ${r} .jw-vl-badge .jw-vtext{flex-direction:row;align-items:baseline;gap:6px}
+        ${r} .jw-vnum{font-size:32px;font-weight:800;color:${accent};font-variant-numeric:tabular-nums}
+        ${r} .jw-vl-badge .jw-vnum{font-size:18px}
+        ${r} .jw-vlabel{font-size:13px;color:#64748b;font-weight:600}
+        ${r} .jw-brand{margin-top:12px;font-size:12px}${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
     default:
       return { mode: "block", html: `<div class="jw">Unknown tool.</div>`, css: "" };
   }

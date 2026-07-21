@@ -1004,6 +1004,76 @@ export const TOOLS: ToolDef[] = [
       { name: "Essential", useCase: "Any site", industry: "General", preset: { featGrayscale: false, featSpacing: false } },
     ],
   },
+
+  // 27 ── Store Locator ───────────────────────────────────────────────────────
+  {
+    key: "storelocator",
+    name: "Store Locator",
+    categorySlug: "contact-chat",
+    badges: ["No-code"],
+    description: "An interactive map with a synchronized list of your locations.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Find a store near you" },
+        {
+          key: "stores", label: "Locations", type: "list", group: "content", addLabel: "Add location",
+          default: [
+            { name: "Connaught Place", address: "Connaught Place, New Delhi", phone: "+91 98765 43210", hours: "10am – 9pm" },
+            { name: "Bandra West", address: "Linking Road, Bandra West, Mumbai", phone: "+91 98765 11223", hours: "11am – 10pm" },
+            { name: "Koramangala", address: "80 Feet Road, Koramangala, Bengaluru", phone: "+91 98765 33445", hours: "10am – 9pm" },
+          ],
+          itemFields: [
+            { key: "name", label: "Name", type: "text", group: "content", default: "" },
+            { key: "address", label: "Address", type: "text", group: "content", default: "" },
+            { key: "phone", label: "Phone", type: "tel", group: "content", default: "" },
+            { key: "hours", label: "Hours", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "mapSide", label: "Map position", type: "select", group: "layout", default: "right",
+          options: [{ value: "right", label: "Right" }, { value: "left", label: "Left" }] },
+        { key: "mapHeight", label: "Height (px)", type: "number", group: "layout", default: 420, min: 240, max: 720 },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "showDirections", label: "Show directions links", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Retail Chain", useCase: "Multi-location", industry: "Retail", preset: {} },
+      { name: "Clinics", useCase: "Healthcare", industry: "Healthcare", preset: { heading: "Our clinics" } },
+    ],
+  },
+
+  // 28 ── Visitor Counter ─────────────────────────────────────────────────────
+  {
+    key: "visitors",
+    name: "Visitor Counter",
+    categorySlug: "social-proof",
+    badges: ["Social Proof"],
+    description: "Show a live view count backed by your real first-party analytics.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "" },
+        { key: "label", label: "Label", type: "text", group: "content", default: "Total visitors" },
+        { key: "icon", label: "Icon (emoji)", type: "text", group: "content", default: "👁️" },
+        { key: "metric", label: "Metric", type: "select", group: "content", default: "total",
+          options: [{ value: "total", label: "Total views" }, { value: "today", label: "Today's views" }] },
+        { key: "startOffset", label: "Starting offset", type: "number", group: "content", default: 0, min: 0, help: "Added to the real measured count — a display adjustment, not measured data." },
+        { key: "layout", label: "Style", type: "select", group: "layout", default: "card",
+          options: [{ value: "card", label: "Card" }, { value: "badge", label: "Badge" }] },
+        { key: "accentColor", label: "Number colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "separator", label: "Thousands separator", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Total Views", useCase: "Social proof", industry: "General", preset: {} },
+      { name: "Today's Views", useCase: "Live badge", industry: "General", preset: { metric: "today", label: "Views today", layout: "badge" } },
+    ],
+  },
 ];
 
 export function toolByKey(key: string): ToolDef | undefined {
