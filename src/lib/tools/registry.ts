@@ -8,6 +8,7 @@ export const CATEGORIES = [
   { slug: "forms-leads", name: "Forms & Leads", sortOrder: 3 },
   { slug: "contact-chat", name: "Contact & Chat", sortOrder: 4 },
   { slug: "content", name: "Content", sortOrder: 5 },
+  { slug: "utility", name: "Utility", sortOrder: 6 },
 ] as const;
 
 const TABS = {
@@ -308,6 +309,324 @@ export const TOOLS: ToolDef[] = [
     templates: [
       { name: "Single Store", useCase: "Contact page", industry: "Retail", preset: {} },
       { name: "Office Location", useCase: "About page", industry: "Services", preset: { heading: "Visit our office" } },
+    ],
+  },
+
+  // 9 ── Business Hours ───────────────────────────────────────────────────────
+  {
+    key: "hours",
+    name: "Business Hours",
+    categorySlug: "contact-chat",
+    badges: ["No-code"],
+    description: "Show your opening hours with a live open / closed status.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Opening hours" },
+        { key: "utcOffset", label: "Timezone (UTC offset)", type: "number", group: "content", default: 5.5, min: -12, max: 14, help: "e.g. 5.5 for IST — used to compute the open/closed status." },
+        {
+          key: "days", label: "Weekly schedule (Monday first)", type: "list", group: "content", addLabel: "Add day",
+          default: [
+            { label: "Monday", closed: false, from: "09:00", to: "18:00" },
+            { label: "Tuesday", closed: false, from: "09:00", to: "18:00" },
+            { label: "Wednesday", closed: false, from: "09:00", to: "18:00" },
+            { label: "Thursday", closed: false, from: "09:00", to: "18:00" },
+            { label: "Friday", closed: false, from: "09:00", to: "18:00" },
+            { label: "Saturday", closed: false, from: "10:00", to: "16:00" },
+            { label: "Sunday", closed: true, from: "", to: "" },
+          ],
+          itemFields: [
+            { key: "label", label: "Day", type: "text", group: "content", default: "" },
+            { key: "closed", label: "Closed", type: "toggle", group: "content", default: false },
+            { key: "from", label: "Opens", type: "text", group: "content", default: "09:00", placeholder: "09:00" },
+            { key: "to", label: "Closes", type: "text", group: "content", default: "18:00", placeholder: "18:00" },
+          ],
+        },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "table",
+          options: [{ value: "table", label: "Table" }, { value: "compact", label: "Compact" }] },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "showStatus", label: "Show open/closed badge", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Store Hours", useCase: "Retail", industry: "Retail", preset: {} },
+      { name: "Clinic Hours", useCase: "Appointments", industry: "Healthcare", preset: { heading: "Clinic hours" } },
+    ],
+  },
+
+  // 10 ── Animated Counter ────────────────────────────────────────────────────
+  {
+    key: "counter",
+    name: "Animated Counter",
+    categorySlug: "content",
+    badges: ["Popular"],
+    description: "Animated statistics that count up when they scroll into view.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "" },
+        {
+          key: "items", label: "Stats", type: "list", group: "content", addLabel: "Add stat",
+          default: [
+            { value: 12000, prefix: "", suffix: "+", label: "Happy customers", icon: "😀" },
+            { value: 4500, prefix: "", suffix: "", label: "Projects delivered", icon: "🚀" },
+            { value: 4.9, prefix: "", suffix: "/5", label: "Average rating", icon: "⭐" },
+            { value: 99, prefix: "", suffix: "%", label: "Uptime", icon: "⚡" },
+          ],
+          itemFields: [
+            { key: "value", label: "Target value", type: "number", group: "content", default: 100 },
+            { key: "prefix", label: "Prefix", type: "text", group: "content", default: "" },
+            { key: "suffix", label: "Suffix", type: "text", group: "content", default: "" },
+            { key: "label", label: "Label", type: "text", group: "content", default: "" },
+            { key: "icon", label: "Icon (emoji)", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 4, min: 1, max: 4 },
+        { key: "accentColor", label: "Number colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "align", label: "Align", type: "select", group: "style", default: "center",
+          options: [{ value: "center", label: "Center" }, { value: "left", label: "Left" }] },
+        { key: "duration", label: "Count duration (ms)", type: "number", group: "behaviour", default: 1600, min: 200, max: 6000 },
+        { key: "separator", label: "Thousands separator", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Company Stats", useCase: "About page", industry: "General", preset: {} },
+      { name: "Impact Numbers", useCase: "Non-profit", industry: "Non-profit", preset: { heading: "Our impact" } },
+    ],
+  },
+
+  // 11 ── Logo Showcase ───────────────────────────────────────────────────────
+  {
+    key: "logos",
+    name: "Logo Showcase",
+    categorySlug: "social-proof",
+    badges: ["Social Proof"],
+    description: "Display client, partner, or press logos in a grid or moving strip.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Trusted by leading brands" },
+        {
+          key: "logos", label: "Logos", type: "list", group: "content", addLabel: "Add logo",
+          default: [
+            { image: "", alt: "Acme", link: "" }, { image: "", alt: "Globex", link: "" },
+            { image: "", alt: "Umbrella", link: "" }, { image: "", alt: "Initech", link: "" }, { image: "", alt: "Hooli", link: "" },
+          ],
+          itemFields: [
+            { key: "image", label: "Logo image", type: "image", group: "content", default: "" },
+            { key: "alt", label: "Name", type: "text", group: "content", default: "" },
+            { key: "link", label: "Link", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "grid",
+          options: [{ value: "grid", label: "Grid" }, { value: "ticker", label: "Moving strip" }] },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 5, min: 2, max: 6 },
+        { key: "grayscale", label: "Greyscale (colour on hover)", type: "toggle", group: "style", default: true },
+        { key: "speed", label: "Strip speed (s)", type: "number", group: "behaviour", default: 30, min: 5, max: 120 },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Client Logos", useCase: "Homepage", industry: "General", preset: {} },
+      { name: "As Seen In", useCase: "Press", industry: "Media", preset: { heading: "As seen in", layout: "ticker" } },
+    ],
+  },
+
+  // 12 ── Team Showcase ───────────────────────────────────────────────────────
+  {
+    key: "team",
+    name: "Team Showcase",
+    categorySlug: "content",
+    badges: ["No-code"],
+    description: "Introduce your team with photos, roles, bios, and social links.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Meet the team" },
+        {
+          key: "members", label: "Team members", type: "list", group: "content", addLabel: "Add member",
+          default: [
+            { photo: "", name: "Aarav Sharma", role: "Founder & CEO", bio: "Loves building products people enjoy using.", email: "", linkedin: "", twitter: "" },
+            { photo: "", name: "Neha Verma", role: "Head of Design", bio: "Crafting delightful, accessible experiences.", email: "", linkedin: "", twitter: "" },
+            { photo: "", name: "Rohan Gupta", role: "Lead Engineer", bio: "Turning ideas into reliable software.", email: "", linkedin: "", twitter: "" },
+          ],
+          itemFields: [
+            { key: "photo", label: "Photo", type: "image", group: "content", default: "" },
+            { key: "name", label: "Name", type: "text", group: "content", default: "" },
+            { key: "role", label: "Role", type: "text", group: "content", default: "" },
+            { key: "bio", label: "Bio", type: "textarea", group: "content", default: "" },
+            { key: "email", label: "Email", type: "email", group: "content", default: "" },
+            { key: "linkedin", label: "LinkedIn URL", type: "url", group: "content", default: "" },
+            { key: "twitter", label: "Twitter / X URL", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "grid",
+          options: [{ value: "grid", label: "Grid" }, { value: "list", label: "List" }] },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 3, min: 2, max: 4 },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "round", label: "Circular photos", type: "toggle", group: "style", default: true },
+        { key: "showBio", label: "Show bio", type: "toggle", group: "behaviour", default: true },
+        { key: "showSocial", label: "Show social links", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Leadership", useCase: "About page", industry: "General", preset: {} },
+      { name: "Full Team", useCase: "Careers page", industry: "General", preset: { columns: 4 } },
+    ],
+  },
+
+  // 13 ── Timeline ────────────────────────────────────────────────────────────
+  {
+    key: "timeline",
+    name: "Timeline",
+    categorySlug: "content",
+    badges: ["No-code"],
+    description: "Tell your story or roadmap as an animated vertical timeline.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Our journey" },
+        {
+          key: "items", label: "Milestones", type: "list", group: "content", addLabel: "Add milestone",
+          default: [
+            { date: "2021", title: "Founded", text: "We started with a simple idea and a small team.", icon: "🌱" },
+            { date: "2022", title: "First 1,000 customers", text: "Word spread and our community grew fast.", icon: "🚀" },
+            { date: "2023", title: "Series A", text: "We raised funding to expand the product.", icon: "💰" },
+            { date: "2024", title: "Global launch", text: "Now serving customers in 40+ countries.", icon: "🌍" },
+          ],
+          itemFields: [
+            { key: "date", label: "Date / period", type: "text", group: "content", default: "" },
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "text", label: "Description", type: "textarea", group: "content", default: "" },
+            { key: "icon", label: "Icon (emoji)", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "vertical",
+          options: [{ value: "vertical", label: "Vertical" }, { value: "alternating", label: "Alternating" }] },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "lineColor", label: "Line colour", type: "color", group: "style", default: "#e2e8f0" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Company History", useCase: "About page", industry: "General", preset: {} },
+      { name: "Product Roadmap", useCase: "Product page", industry: "SaaS", preset: { heading: "Roadmap", layout: "alternating" } },
+    ],
+  },
+
+  // 14 ── Back to Top ─────────────────────────────────────────────────────────
+  {
+    key: "backtotop",
+    name: "Back to Top",
+    categorySlug: "utility",
+    badges: ["No-code"],
+    description: "A floating button that smoothly scrolls visitors back to the top.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "label", label: "Label (optional)", type: "text", group: "content", default: "" },
+        { key: "position", label: "Position", type: "select", group: "layout", default: "bottom-right",
+          options: [{ value: "bottom-right", label: "Bottom right" }, { value: "bottom-left", label: "Bottom left" }] },
+        { key: "size", label: "Size (px)", type: "number", group: "layout", default: 48, min: 36, max: 72 },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0d9488" },
+        { key: "iconColor", label: "Icon colour", type: "color", group: "style", default: "#ffffff" },
+        { key: "shape", label: "Shape", type: "select", group: "style", default: "circle",
+          options: [{ value: "circle", label: "Circle" }, { value: "rounded", label: "Rounded" }] },
+        { key: "threshold", label: "Show after scroll (px)", type: "number", group: "behaviour", default: 300, min: 0, max: 3000 },
+        { key: "showProgress", label: "Show scroll-progress ring", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Minimal", useCase: "Any site", industry: "General", preset: {} },
+      { name: "With progress", useCase: "Long articles", industry: "Blog", preset: { showProgress: true, shape: "rounded", label: "Top" } },
+    ],
+  },
+
+  // 15 ── Photo Gallery ───────────────────────────────────────────────────────
+  {
+    key: "gallery",
+    name: "Photo Gallery",
+    categorySlug: "content",
+    badges: ["New"],
+    description: "A responsive photo gallery with a touch-friendly lightbox.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "" },
+        {
+          key: "images", label: "Images", type: "list", group: "content", addLabel: "Add image",
+          default: [
+            { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" },
+            { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" },
+          ],
+          itemFields: [
+            { key: "src", label: "Image URL", type: "image", group: "content", default: "" },
+            { key: "caption", label: "Caption", type: "text", group: "content", default: "" },
+            { key: "alt", label: "Alt text", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "grid",
+          options: [{ value: "grid", label: "Grid" }, { value: "masonry", label: "Masonry" }] },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 3, min: 2, max: 5 },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+        { key: "lightbox", label: "Open lightbox on click", type: "toggle", group: "behaviour", default: true },
+        { key: "showCaptions", label: "Show captions", type: "toggle", group: "behaviour", default: false },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Portfolio Grid", useCase: "Creator page", industry: "Creator", preset: {} },
+      { name: "Masonry Gallery", useCase: "Photography", industry: "Photography", preset: { layout: "masonry", columns: 4 } },
+    ],
+  },
+
+  // 16 ── Custom Button ───────────────────────────────────────────────────────
+  {
+    key: "button",
+    name: "Custom Button",
+    categorySlug: "utility",
+    badges: ["No-code"],
+    description: "A flexible call-to-action button with link, call, email, scroll, and copy actions.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "label", label: "Button text", type: "text", group: "content", default: "Get started" },
+        { key: "icon", label: "Icon (emoji)", type: "text", group: "content", default: "" },
+        { key: "action", label: "Action", type: "select", group: "content", default: "url",
+          options: [
+            { value: "url", label: "Open link" }, { value: "tel", label: "Call phone" }, { value: "email", label: "Send email" },
+            { value: "scroll", label: "Scroll to section" }, { value: "copy", label: "Copy text" },
+          ] },
+        { key: "target", label: "Destination", type: "text", group: "content", default: "https://example.com", help: "URL, phone, email, CSS selector (#section) or text to copy." },
+        { key: "align", label: "Alignment", type: "select", group: "layout", default: "left",
+          options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }] },
+        { key: "fullWidth", label: "Full width", type: "toggle", group: "layout", default: false },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0d9488" },
+        { key: "textColor", label: "Text", type: "color", group: "style", default: "#ffffff" },
+        { key: "size", label: "Size", type: "select", group: "style", default: "md",
+          options: [{ value: "sm", label: "Small" }, { value: "md", label: "Medium" }, { value: "lg", label: "Large" }] },
+        { key: "radius", label: "Corner radius (px)", type: "number", group: "style", default: 10, min: 0, max: 40 },
+        { key: "variant", label: "Style", type: "select", group: "style", default: "solid",
+          options: [{ value: "solid", label: "Solid" }, { value: "outline", label: "Outline" }] },
+        { key: "newTab", label: "Open link in new tab", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Primary CTA", useCase: "Landing page", industry: "General", preset: {} },
+      { name: "Call Button", useCase: "Contact", industry: "Services", preset: { label: "Call us now", action: "tel", target: "+919876543210", icon: "📞" } },
     ],
   },
 ];
