@@ -555,6 +555,7 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
         ${r} .jw-gph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:30px}
         ${r} .jw-gcap{position:absolute;inset:auto 0 0 0;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;font-size:12px;padding:16px 10px 8px;text-align:left}
         ${r} .jw-lb{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center}
+        ${r} .jw-lb[hidden]{display:none}
         ${r} .jw-lbbd{position:absolute;inset:0;background:rgba(9,12,20,.92)}
         ${r} .jw-lbfig{position:relative;margin:0;max-width:92vw;max-height:86vh;text-align:center}
         ${r} .jw-lbfig img{max-width:92vw;max-height:80vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -750,6 +751,7 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
         ${r} .jw-pcell:hover .jw-pover{opacity:1}
         ${r} .jw-pover b{font-size:16px}${r} .jw-pover em{font-style:normal;font-size:12px;color:#a7f3d0}
         ${r} .jw-pmodal{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:20px}
+        ${r} .jw-pmodal[hidden]{display:none}
         ${r} .jw-pmbd{position:absolute;inset:0;background:rgba(9,12,20,.8)}
         ${r} .jw-pmcard{position:relative;background:#fff;border-radius:16px;overflow:hidden;max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
         ${r} .jw-pmimg{width:100%;max-height:340px;object-fit:cover;display:block;background:#f1f5f9}
@@ -809,6 +811,7 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
       </div>`;
       const css = `
         ${r} .jw-agegate{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}
+        ${r} .jw-agegate[hidden]{display:none}
         ${r} .jw-agbd{position:absolute;inset:0;background:rgba(3,7,18,.9);backdrop-filter:blur(4px)}
         ${r} .jw-agcard{position:relative;background:${bg};color:#fff;border-radius:18px;padding:34px;max-width:420px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
         ${r} .jw-agtitle{font-size:24px;font-weight:800;margin:0 0 10px}
@@ -988,6 +991,7 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
         ${r} .jw-jsal{font-weight:600;color:#334155}
         ${r} .jw-jview{background:none;border:0;color:${accent};font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
         ${r} .jw-jmodal{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:20px}
+        ${r} .jw-jmodal[hidden]{display:none}
         ${r} .jw-jmbd{position:absolute;inset:0;background:rgba(9,12,20,.8)}
         ${r} .jw-jmcard{position:relative;background:#fff;border-radius:16px;padding:28px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto}
         ${r} .jw-jmx{position:absolute;top:14px;right:16px;border:0;background:none;font-size:24px;cursor:pointer;color:#64748b}
