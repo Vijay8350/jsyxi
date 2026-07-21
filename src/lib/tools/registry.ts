@@ -847,6 +847,163 @@ export const TOOLS: ToolDef[] = [
       { name: "Floating Card", useCase: "Any site", industry: "General", preset: { style: "floating" } },
     ],
   },
+
+  // 23 ── Price Calculator ────────────────────────────────────────────────────
+  {
+    key: "calculator",
+    name: "Price Calculator",
+    categorySlug: "forms-leads",
+    badges: ["Conversion"],
+    description: "An instant quote / pricing calculator — no formulas or code to write.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Estimate your price" },
+        { key: "currency", label: "Currency symbol", type: "text", group: "content", default: "₹" },
+        { key: "baseAmount", label: "Base amount", type: "number", group: "content", default: 0, min: 0, help: "Fixed starting amount before inputs." },
+        {
+          key: "fields", label: "Inputs", type: "list", group: "content", addLabel: "Add input",
+          default: [
+            { label: "Quantity", type: "number", coefficient: 500, default: 1, min: 1, max: 100, step: 1 },
+            { label: "Extra add-ons", type: "slider", coefficient: 250, default: 0, min: 0, max: 10, step: 1 },
+          ],
+          itemFields: [
+            { key: "label", label: "Label", type: "text", group: "content", default: "" },
+            { key: "type", label: "Type", type: "select", group: "content", default: "number",
+              options: [{ value: "number", label: "Number" }, { value: "slider", label: "Slider" }] },
+            { key: "coefficient", label: "Price per unit", type: "number", group: "content", default: 1 },
+            { key: "default", label: "Default value", type: "number", group: "content", default: 1 },
+            { key: "min", label: "Min", type: "number", group: "content", default: 0 },
+            { key: "max", label: "Max", type: "number", group: "content", default: 100 },
+            { key: "step", label: "Step", type: "number", group: "content", default: 1 },
+          ],
+        },
+        { key: "discountPercent", label: "Discount (%)", type: "number", group: "behaviour", default: 0, min: 0, max: 100 },
+        { key: "taxPercent", label: "Tax (%)", type: "number", group: "behaviour", default: 0, min: 0, max: 100 },
+        { key: "resultLabel", label: "Result label", type: "text", group: "content", default: "Estimated total" },
+        { key: "showBreakdown", label: "Show breakdown", type: "toggle", group: "behaviour", default: true },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Quote Calculator", useCase: "Service pricing", industry: "Services", preset: {} },
+      { name: "Product Estimate", useCase: "Store", industry: "E-commerce", preset: { heading: "Build your bundle", taxPercent: 18 } },
+    ],
+  },
+
+  // 24 ── Event Calendar ──────────────────────────────────────────────────────
+  {
+    key: "calendar",
+    name: "Event Calendar",
+    categorySlug: "content",
+    badges: ["No-code"],
+    description: "List upcoming events with dates, locations, and add-to-calendar links.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Upcoming events" },
+        {
+          key: "events", label: "Events", type: "list", group: "content", addLabel: "Add event",
+          default: [
+            { date: "2026-08-15", time: "10:00 AM", title: "Product Launch Webinar", location: "Online", category: "Webinar", link: "" },
+            { date: "2026-09-05", time: "6:00 PM", title: "Community Meetup", location: "Bengaluru", category: "Meetup", link: "" },
+            { date: "2026-10-12", time: "9:00 AM", title: "Annual Conference", location: "Mumbai", category: "Conference", link: "" },
+          ],
+          itemFields: [
+            { key: "date", label: "Date (YYYY-MM-DD)", type: "text", group: "content", default: "", placeholder: "2026-08-15" },
+            { key: "time", label: "Time", type: "text", group: "content", default: "" },
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "location", label: "Location", type: "text", group: "content", default: "" },
+            { key: "category", label: "Category", type: "text", group: "content", default: "" },
+            { key: "link", label: "Details / tickets link", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "list",
+          options: [{ value: "list", label: "List" }, { value: "cards", label: "Cards" }] },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "showAddToCalendar", label: "Show 'add to calendar'", type: "toggle", group: "behaviour", default: true },
+        { key: "hidePast", label: "Hide past events", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Event List", useCase: "Events page", industry: "General", preset: {} },
+      { name: "Webinar Schedule", useCase: "SaaS", industry: "SaaS", preset: { heading: "Upcoming webinars", layout: "cards" } },
+    ],
+  },
+
+  // 25 ── Job Board ───────────────────────────────────────────────────────────
+  {
+    key: "jobs",
+    name: "Job Board",
+    categorySlug: "forms-leads",
+    badges: ["No-code"],
+    description: "List open roles with filters and apply links.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Open positions" },
+        {
+          key: "jobs", label: "Roles", type: "list", group: "content", addLabel: "Add role",
+          default: [
+            { title: "Senior Frontend Engineer", department: "Engineering", location: "Remote", type: "Full-time", salary: "₹25–40 LPA", description: "Build delightful, accessible interfaces with React and TypeScript. You'll own features end-to-end.", applyUrl: "" },
+            { title: "Product Designer", department: "Design", location: "Bengaluru", type: "Full-time", salary: "₹18–30 LPA", description: "Shape the product experience from research to polished UI. Strong portfolio required.", applyUrl: "" },
+            { title: "Growth Marketer", department: "Marketing", location: "Remote", type: "Contract", salary: "₹12–20 LPA", description: "Run experiments across channels and turn data into growth.", applyUrl: "" },
+          ],
+          itemFields: [
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "department", label: "Department", type: "text", group: "content", default: "" },
+            { key: "location", label: "Location", type: "text", group: "content", default: "" },
+            { key: "type", label: "Type", type: "text", group: "content", default: "Full-time" },
+            { key: "salary", label: "Salary", type: "text", group: "content", default: "" },
+            { key: "description", label: "Description", type: "textarea", group: "content", default: "" },
+            { key: "applyUrl", label: "Apply link", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "showFilters", label: "Show department filters", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Careers Page", useCase: "Hiring", industry: "General", preset: {} },
+      { name: "Remote Jobs", useCase: "Distributed team", industry: "Tech", preset: {} },
+    ],
+  },
+
+  // 26 ── Accessibility Toolbar ───────────────────────────────────────────────
+  {
+    key: "accessibility",
+    name: "Accessibility Toolbar",
+    categorySlug: "utility",
+    badges: ["No-code"],
+    description: "Let visitors adjust text size, contrast, and readability on your site.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "title", label: "Panel title", type: "text", group: "content", default: "Accessibility" },
+        { key: "position", label: "Position", type: "select", group: "layout", default: "bottom-right",
+          options: [{ value: "bottom-right", label: "Bottom right" }, { value: "bottom-left", label: "Bottom left" }] },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "featBiggerText", label: "Bigger text", type: "toggle", group: "behaviour", default: true },
+        { key: "featContrast", label: "High contrast", type: "toggle", group: "behaviour", default: true },
+        { key: "featReadable", label: "Readable font", type: "toggle", group: "behaviour", default: true },
+        { key: "featLinks", label: "Highlight links", type: "toggle", group: "behaviour", default: true },
+        { key: "featGrayscale", label: "Greyscale", type: "toggle", group: "behaviour", default: true },
+        { key: "featSpacing", label: "Letter spacing", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Full Toolbar", useCase: "Any site", industry: "General", preset: {} },
+      { name: "Essential", useCase: "Any site", industry: "General", preset: { featGrayscale: false, featSpacing: false } },
+    ],
+  },
 ];
 
 export function toolByKey(key: string): ToolDef | undefined {

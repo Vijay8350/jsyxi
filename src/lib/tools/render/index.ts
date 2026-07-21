@@ -852,6 +852,192 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
       return { mode: "overlay", html, css };
     }
 
+    // ── Price Calculator ───────────────────────────────────────────────────────
+    case "calculator": {
+      const fields = arr(config.fields);
+      const accent = col(config.accentColor, "#0d9488");
+      const cur = String(config.currency ?? "₹");
+      const base = num(config.baseAmount, 0);
+      const tax = num(config.taxPercent, 0);
+      const disc = num(config.discountPercent, 0);
+      const showBd = bool(config.showBreakdown, true);
+      const inputs = fields.map((f, i) => {
+        const type = String(f.type ?? "number");
+        const dv = num(f.default, 0), mn = num(f.min, 0), mx = num(f.max, 100), st = num(f.step, 1) || 1, coef = num(f.coefficient, 1);
+        const control = type === "slider"
+          ? `<div class="jw-calcslide"><input class="jw-calcin" type="range" data-coef="${coef}" min="${mn}" max="${mx}" step="${st}" value="${dv}"/><output class="jw-calcout">${dv}</output></div>`
+          : `<input class="jw-calcin" type="number" data-coef="${coef}" min="${mn}" max="${mx}" step="${st}" value="${dv}"/>`;
+        return `<label class="jw-calcf"><span class="jw-calclabel">${esc(f.label)}</span>${control}</label>`;
+      }).join("");
+      const html = `<div class="jw jw-calc" data-base="${base}" data-tax="${tax}" data-disc="${disc}" data-cur="${esc(cur)}" data-bd="${showBd}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-calcfields">${inputs}</div>
+        <div class="jw-calcbd" ${showBd ? "" : "hidden"}></div>
+        <div class="jw-calcresult"><span>${esc(config.resultLabel || "Estimated total")}</span><b class="jw-calctotal">${esc(cur)}0</b></div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-calc{font-family:inherit;max-width:460px;border:1px solid #e5e7eb;border-radius:16px;padding:22px;background:#fff}
+        ${r} .jw-heading{font-size:20px;font-weight:700;margin:0 0 16px;color:#0f172a}
+        ${r} .jw-calcfields{display:grid;gap:14px}
+        ${r} .jw-calcf{display:flex;flex-direction:column;gap:6px}
+        ${r} .jw-calclabel{font-size:14px;font-weight:600;color:#334155}
+        ${r} .jw-calcin[type=number]{border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit;width:100%;box-sizing:border-box}
+        ${r} .jw-calcin[type=number]:focus{outline:2px solid ${accent}55;border-color:${accent}}
+        ${r} .jw-calcslide{display:flex;align-items:center;gap:12px}
+        ${r} .jw-calcin[type=range]{flex:1;accent-color:${accent}}
+        ${r} .jw-calcout{min-width:36px;text-align:center;font-weight:700;color:${accent};background:${accent}14;border-radius:8px;padding:4px 8px}
+        ${r} .jw-calcbd{margin-top:16px;font-size:13px;color:#64748b;display:grid;gap:5px}
+        ${r} .jw-calcbd .jw-bdrow{display:flex;justify-content:space-between}
+        ${r} .jw-calcresult{margin-top:16px;padding-top:16px;border-top:2px solid #f1f5f9;display:flex;justify-content:space-between;align-items:baseline}
+        ${r} .jw-calcresult span{font-size:15px;color:#334155;font-weight:600}
+        ${r} .jw-calctotal{font-size:28px;font-weight:800;color:${accent}}
+        ${r} .jw-brand{margin-top:14px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Event Calendar ─────────────────────────────────────────────────────────
+    case "calendar": {
+      const events = arr(config.events);
+      const accent = col(config.accentColor, "#0d9488");
+      const cards = String(config.layout ?? "list") === "cards";
+      const addcal = bool(config.showAddToCalendar, true);
+      const hidePast = bool(config.hidePast, true);
+      const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const sorted = events.slice().sort((a, b) => String(a.date ?? "").localeCompare(String(b.date ?? "")));
+      const gcal = (ev: Cfg) => {
+        const d = String(ev.date ?? "").replace(/-/g, "");
+        if (!d) return "";
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(String(ev.title ?? ""))}&dates=${d}/${d}&location=${encodeURIComponent(String(ev.location ?? ""))}`;
+      };
+      const rows = sorted.map((ev) => {
+        const parts = String(ev.date ?? "").split("-");
+        const day = parts[2] || "—", mon = MONTHS[(parseInt(parts[1], 10) || 1) - 1] || "";
+        const g = addcal ? gcal(ev) : "";
+        return `<div class="jw-cev" data-date="${esc(ev.date)}">
+          <div class="jw-cdate"><b>${esc(day)}</b><span>${mon}</span></div>
+          <div class="jw-cbody">
+            <div class="jw-cmeta">${ev.category ? `<span class="jw-ctag">${esc(ev.category)}</span>` : ""}${ev.time ? `<span class="jw-ctime">${esc(ev.time)}</span>` : ""}</div>
+            <b class="jw-ctitle">${esc(ev.title)}</b>
+            ${ev.location ? `<span class="jw-cloc">${esc(ev.location)}</span>` : ""}
+            <div class="jw-cactions">${ev.link ? `<a href="${safeUrl(ev.link)}" target="_blank" rel="noopener">Details →</a>` : ""}${g ? `<a href="${g}" target="_blank" rel="noopener">Add to calendar</a>` : ""}</div>
+          </div>
+        </div>`;
+      }).join("");
+      const html = `<div class="jw jw-calendar ${cards ? "jw-ccards" : "jw-clist"}" data-hidepast="${hidePast}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-cevents">${rows}</div>
+        <div class="jw-cempty" hidden>No upcoming events.</div>${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-calendar{font-family:inherit}
+        ${r} .jw-heading{font-size:22px;font-weight:800;margin:0 0 18px;color:#0f172a}
+        ${r} .jw-cevents{display:grid;gap:12px}
+        ${r} .jw-ccards .jw-cevents{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+        ${r} .jw-cev{display:flex;gap:16px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px}
+        ${r} .jw-ccards .jw-cev{flex-direction:column;gap:12px}
+        ${r} .jw-cdate{flex-shrink:0;width:60px;text-align:center;background:${accent}12;border-radius:10px;padding:8px 0}
+        ${r} .jw-cdate b{display:block;font-size:24px;font-weight:800;color:${accent};line-height:1}
+        ${r} .jw-cdate span{font-size:12px;text-transform:uppercase;color:#64748b;font-weight:600}
+        ${r} .jw-cmeta{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+        ${r} .jw-ctag{font-size:11px;font-weight:700;color:${accent};background:${accent}14;border-radius:999px;padding:2px 8px}
+        ${r} .jw-ctime{font-size:12px;color:#64748b}
+        ${r} .jw-ctitle{font-size:16px;color:#0f172a}
+        ${r} .jw-cloc{display:block;font-size:13px;color:#64748b;margin-top:2px}
+        ${r} .jw-cactions{display:flex;gap:14px;margin-top:8px}
+        ${r} .jw-cactions a{font-size:13px;font-weight:600;color:${accent};text-decoration:none}
+        ${r} .jw-cempty{text-align:center;color:#94a3b8;padding:30px}
+        ${r} .jw-brand{margin-top:16px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Job Board ──────────────────────────────────────────────────────────────
+    case "jobs": {
+      const jobs = arr(config.jobs);
+      const accent = col(config.accentColor, "#0d9488");
+      const filters = bool(config.showFilters, true);
+      const depts: string[] = [];
+      jobs.forEach((j) => { const d = String(j.department ?? "").trim(); if (d && depts.indexOf(d) < 0) depts.push(d); });
+      const filterHtml = filters && depts.length
+        ? `<div class="jw-jfilters"><button class="jw-jfilter jw-active" data-d="*" type="button">All</button>${depts.map((d) => `<button class="jw-jfilter" data-d="${esc(d)}" type="button">${esc(d)}</button>`).join("")}</div>`
+        : "";
+      const data = JSON.stringify(jobs.map((j) => ({ title: String(j.title ?? ""), department: String(j.department ?? ""), location: String(j.location ?? ""), type: String(j.type ?? ""), salary: String(j.salary ?? ""), description: String(j.description ?? ""), applyUrl: j.applyUrl ? safeUrl(j.applyUrl) : "" })));
+      const cards = jobs.map((j, i) => `<div class="jw-jcard" data-d="${esc(j.department)}">
+        <div class="jw-jinfo"><b class="jw-jtitle">${esc(j.title)}</b><div class="jw-jmeta">${j.department ? `<span>${esc(j.department)}</span>` : ""}${j.location ? `<span>${esc(j.location)}</span>` : ""}${j.type ? `<span class="jw-jtype">${esc(j.type)}</span>` : ""}${j.salary ? `<span class="jw-jsal">${esc(j.salary)}</span>` : ""}</div></div>
+        <button class="jw-jview" type="button" data-i="${i}">View &amp; apply →</button>
+      </div>`).join("");
+      const html = `<div class="jw jw-jobs" data-jobs="${esc(data)}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        ${filterHtml}
+        <div class="jw-jlist">${cards}</div>
+        <div class="jw-jmodal" hidden><div class="jw-jmbd"></div><div class="jw-jmcard"><button class="jw-jmx" type="button" aria-label="Close">×</button><b class="jw-jmtitle"></b><div class="jw-jmmeta"></div><p class="jw-jmdesc"></p><a class="jw-jmapply" target="_blank" rel="noopener">Apply now →</a></div></div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-jobs{font-family:inherit}
+        ${r} .jw-heading{font-size:24px;font-weight:800;margin:0 0 18px;color:#0f172a}
+        ${r} .jw-jfilters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+        ${r} .jw-jfilter{border:1px solid #e2e8f0;background:#fff;color:#475569;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+        ${r} .jw-jfilter.jw-active{background:${accent};border-color:${accent};color:#fff}
+        ${r} .jw-jlist{display:grid;gap:12px}
+        ${r} .jw-jcard{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;transition:border-color .2s}
+        ${r} .jw-jcard:hover{border-color:${accent}66}
+        ${r} .jw-jtitle{font-size:17px;color:#0f172a}
+        ${r} .jw-jmeta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:13px;color:#64748b;align-items:center}
+        ${r} .jw-jtype{background:${accent}14;color:${accent};font-weight:700;border-radius:999px;padding:2px 10px;font-size:12px}
+        ${r} .jw-jsal{font-weight:600;color:#334155}
+        ${r} .jw-jview{background:none;border:0;color:${accent};font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+        ${r} .jw-jmodal{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:20px}
+        ${r} .jw-jmbd{position:absolute;inset:0;background:rgba(9,12,20,.8)}
+        ${r} .jw-jmcard{position:relative;background:#fff;border-radius:16px;padding:28px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto}
+        ${r} .jw-jmx{position:absolute;top:14px;right:16px;border:0;background:none;font-size:24px;cursor:pointer;color:#64748b}
+        ${r} .jw-jmtitle{font-size:22px;color:#0f172a;display:block;padding-right:24px}
+        ${r} .jw-jmmeta{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px;font-size:13px;color:#64748b}
+        ${r} .jw-jmdesc{margin:0;color:#475569;line-height:1.65;white-space:pre-line}
+        ${r} .jw-jmapply{display:inline-block;margin-top:20px;background:${accent};color:#fff;padding:11px 22px;border-radius:10px;font-weight:600;text-decoration:none}
+        ${r} .jw-brand{margin-top:16px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Accessibility Toolbar (overlay) ────────────────────────────────────────
+    case "accessibility": {
+      const accent = col(config.accentColor, "#0d9488");
+      const pos = String(config.position ?? "bottom-right");
+      const opt = (key: string, on: unknown, label: string, icon: string) =>
+        bool(on, false) ? `<button class="jw-a11yopt" data-feat="${key}" type="button"><span class="jw-a11yic">${icon}</span>${label}</button>` : "";
+      const opts = [
+        opt("bigtext", config.featBiggerText, "Bigger text", "A+"),
+        opt("contrast", config.featContrast, "High contrast", "◐"),
+        opt("readable", config.featReadable, "Readable font", "Aa"),
+        opt("links", config.featLinks, "Highlight links", "🔗"),
+        opt("grayscale", config.featGrayscale, "Greyscale", "▦"),
+        opt("spacing", config.featSpacing, "Letter spacing", "↔"),
+      ].join("");
+      const html = `<div class="jw jw-a11y jw-${pos}" data-title="${esc(config.title || "Accessibility")}">
+        <button class="jw-a11ybtn" type="button" aria-label="${esc(config.title || "Accessibility")}">♿</button>
+        <div class="jw-a11ypanel" hidden>
+          <div class="jw-a11yhead"><b>${esc(config.title || "Accessibility")}</b><button class="jw-a11yclose" type="button" aria-label="Close">×</button></div>
+          <div class="jw-a11yopts">${opts}</div>
+          <button class="jw-a11yreset" type="button">Reset all</button>
+        </div>
+      </div>`;
+      const side = pos === "bottom-left" ? "left:20px" : "right:20px";
+      const css = `
+        ${r} .jw-a11y{position:fixed;bottom:20px;${side};z-index:2147482800;font-family:inherit}
+        ${r} .jw-a11ybtn{width:52px;height:52px;border-radius:50%;background:${accent};color:#fff;border:0;font-size:26px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center}
+        ${r} .jw-a11ypanel{position:absolute;bottom:62px;${side.split(":")[0]}:0;width:250px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 16px 44px rgba(0,0,0,.2);overflow:hidden}
+        ${r} .jw-a11yhead{display:flex;align-items:center;justify-content:space-between;background:${accent};color:#fff;padding:12px 16px}
+        ${r} .jw-a11yhead b{font-size:15px}
+        ${r} .jw-a11yclose{background:none;border:0;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+        ${r} .jw-a11yopts{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}
+        ${r} .jw-a11yopt{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;color:#334155;font-size:12px;font-weight:600;cursor:pointer;text-align:center}
+        ${r} .jw-a11yopt:hover{border-color:${accent}}
+        ${r} .jw-a11yopt.jw-on{background:${accent}14;border-color:${accent};color:${accent}}
+        ${r} .jw-a11yic{font-size:18px;font-weight:800}
+        ${r} .jw-a11yreset{width:calc(100% - 28px);margin:0 14px 14px;padding:9px;border:0;border-radius:8px;background:#f1f5f9;color:#475569;font-weight:600;cursor:pointer}`;
+      return { mode: "overlay", html, css };
+    }
+
     default:
       return { mode: "block", html: `<div class="jw">Unknown tool.</div>`, css: "" };
   }

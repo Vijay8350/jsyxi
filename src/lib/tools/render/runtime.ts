@@ -251,6 +251,73 @@ export const EMBED_RUNTIME_JS = `
     if(no)no.addEventListener('click',function(){choose('reject')});
   }
 
+  function initCalculator(root){
+    var el=q(root,'.jw-calc'); if(!el) return;
+    var base=parseFloat(el.getAttribute('data-base'))||0;
+    var tax=parseFloat(el.getAttribute('data-tax'))||0;
+    var disc=parseFloat(el.getAttribute('data-disc'))||0;
+    var cur=el.getAttribute('data-cur')||'';
+    var bd=el.getAttribute('data-bd')==='true';
+    var total=q(el,'.jw-calctotal'), bdEl=q(el,'.jw-calcbd');
+    function fmt(n){var s=(Math.round(n*100)/100).toFixed(2);if(s.slice(-3)==='.00')s=s.slice(0,-3);return cur+sepnum(s)}
+    function calc(){
+      var sum=base;
+      qa(el,'.jw-calcin').forEach(function(inp){var v=parseFloat(inp.value)||0;var c=parseFloat(inp.getAttribute('data-coef'))||0;sum+=v*c;var out=inp.parentNode&&inp.parentNode.querySelector('.jw-calcout');if(out)out.textContent=inp.value});
+      var afterDisc=sum*(1-disc/100), fin=afterDisc*(1+tax/100);
+      if(total)total.textContent=fmt(fin);
+      if(bd&&bdEl){var rows='<div class="jw-bdrow"><span>Subtotal</span><span>'+fmt(sum)+'</span></div>';if(disc>0)rows+='<div class="jw-bdrow"><span>Discount ('+disc+'%)</span><span>-'+fmt(sum-afterDisc)+'</span></div>';if(tax>0)rows+='<div class="jw-bdrow"><span>Tax ('+tax+'%)</span><span>+'+fmt(fin-afterDisc)+'</span></div>';bdEl.innerHTML=rows}
+    }
+    qa(el,'.jw-calcin').forEach(function(inp){inp.addEventListener('input',calc)});
+    calc();
+  }
+
+  function initCalendar(root){
+    var el=q(root,'.jw-calendar'); if(!el) return;
+    if(el.getAttribute('data-hidepast')!=='true') return;
+    var d=new Date(), mm=d.getMonth()+1, dd=d.getDate();
+    var today=d.getFullYear()+'-'+(mm<10?'0':'')+mm+'-'+(dd<10?'0':'')+dd;
+    var any=false;
+    qa(el,'.jw-cev').forEach(function(ev){var dt=ev.getAttribute('data-date')||'';if(dt&&dt<today){ev.style.display='none'}else{any=true}});
+    var empty=q(el,'.jw-cempty'); if(empty)empty.hidden=any;
+  }
+
+  function initJobs(root){
+    var el=q(root,'.jw-jobs'); if(!el) return;
+    var jobs; try{jobs=JSON.parse(el.getAttribute('data-jobs')||'[]')}catch(e){jobs=[]}
+    qa(el,'.jw-jfilter').forEach(function(btn){btn.addEventListener('click',function(){
+      qa(el,'.jw-jfilter').forEach(function(b){b.classList.remove('jw-active')});btn.classList.add('jw-active');
+      var d=btn.getAttribute('data-d');
+      qa(el,'.jw-jcard').forEach(function(c){c.style.display=(d==='*'||c.getAttribute('data-d')===d)?'':'none'});
+    })});
+    var m=q(el,'.jw-jmodal'); if(!m) return;
+    var mt=q(m,'.jw-jmtitle'),mm=q(m,'.jw-jmmeta'),md=q(m,'.jw-jmdesc'),ma=q(m,'.jw-jmapply');
+    function open(idx){var j=jobs[idx];if(!j)return;mt.textContent=j.title||'';mm.innerHTML='';['department','location','type','salary'].forEach(function(k){if(j[k]){var s=document.createElement('span');s.textContent=j[k];mm.appendChild(s)}});md.textContent=j.description||'';if(j.applyUrl){ma.href=j.applyUrl;ma.style.display=''}else{ma.style.display='none'}m.hidden=false}
+    function close(){m.hidden=true}
+    qa(el,'.jw-jview').forEach(function(v){v.addEventListener('click',function(){open(parseInt(v.getAttribute('data-i'),10)||0)})});
+    var x=q(m,'.jw-jmx'),bd=q(m,'.jw-jmbd');
+    if(x)x.addEventListener('click',close); if(bd)bd.addEventListener('click',close);
+    document.addEventListener('keydown',function(e){if(!m.hidden&&e.key==='Escape')close()});
+  }
+
+  function initAccessibility(root){
+    var el=q(root,'.jw-a11y'); if(!el) return;
+    var btn=q(el,'.jw-a11ybtn'), panel=q(el,'.jw-a11ypanel'), close=q(el,'.jw-a11yclose'), reset=q(el,'.jw-a11yreset');
+    if(btn)btn.addEventListener('click',function(){panel.hidden=!panel.hidden});
+    if(close)close.addEventListener('click',function(){panel.hidden=true});
+    var docEl=document.documentElement, SID='jw-a11y-style';
+    if(!document.getElementById(SID)){
+      var st=document.createElement('style'); st.id=SID;
+      st.textContent='html.jwa-bigtext{font-size:118%!important}html.jwa-contrast{background:#000!important}html.jwa-contrast *{background-color:#000!important;color:#fff!important;border-color:#fff!important}html.jwa-contrast a{color:#ffd24a!important}html.jwa-readable *{font-family:Arial,Helvetica,sans-serif!important}html.jwa-links a{text-decoration:underline!important;font-weight:700!important}html.jwa-grayscale{filter:grayscale(1)}html.jwa-spacing *{letter-spacing:.06em!important;word-spacing:.12em!important;line-height:1.7!important}';
+      (document.head||docEl).appendChild(st);
+    }
+    var KEY='jsyxi_a11y', active={};
+    try{active=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){active={}}
+    function apply(){qa(el,'.jw-a11yopt').forEach(function(o){var f=o.getAttribute('data-feat');var on=!!active[f];o.classList.toggle('jw-on',on);docEl.classList.toggle('jwa-'+f,on)});try{localStorage.setItem(KEY,JSON.stringify(active))}catch(e){}}
+    qa(el,'.jw-a11yopt').forEach(function(o){o.addEventListener('click',function(){var f=o.getAttribute('data-feat');active[f]=!active[f];apply()})});
+    if(reset)reset.addEventListener('click',function(){active={};apply()});
+    apply();
+  }
+
   window.__jsyxiInit=function(root,tool,opts){
     opts=opts||{};
     try{
@@ -269,6 +336,10 @@ export const EMBED_RUNTIME_JS = `
       else if(tool==='portfolio')initPortfolio(root);
       else if(tool==='agegate')initAgeGate(root);
       else if(tool==='cookie')initCookie(root);
+      else if(tool==='calculator')initCalculator(root);
+      else if(tool==='calendar')initCalendar(root);
+      else if(tool==='jobs')initJobs(root);
+      else if(tool==='accessibility')initAccessibility(root);
     }catch(e){ if(window.console)console.warn('jsyxi init',e) }
   };
 })();
