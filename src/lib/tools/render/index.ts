@@ -636,6 +636,222 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
       return { mode: "overlay", html, css };
     }
 
+    // ── Before / After ─────────────────────────────────────────────────────────
+    case "beforeafter": {
+      const vert = String(config.orientation ?? "horizontal") === "vertical";
+      const aspect = String(config.aspect ?? "16/9");
+      const start = Math.max(0, Math.min(100, num(config.startPos, 50)));
+      const handle = col(config.handleColor, "#0d9488");
+      const imgOrPh = (src: unknown, label: string) => src ? `<img src="${safeUrl(src)}" alt=""/>` : `<span class="jw-baph">${label}</span>`;
+      const html = `<div class="jw jw-ba ${vert ? "jw-bavert" : ""}" data-start="${start}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-bawrap" style="aspect-ratio:${aspect.replace("/", " / ")};--p:${start}%">
+          <div class="jw-baimg jw-baafter">${imgOrPh(config.afterImage, "After")}<span class="jw-balabel jw-labafter">${esc(config.afterLabel)}</span></div>
+          <div class="jw-baimg jw-babefore">${imgOrPh(config.beforeImage, "Before")}<span class="jw-balabel jw-labbefore">${esc(config.beforeLabel)}</span></div>
+          <div class="jw-bahandle"><span class="jw-baknob">⟷</span></div>
+        </div>${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-ba{font-family:inherit}
+        ${r} .jw-heading{font-size:20px;font-weight:700;margin:0 0 12px;color:#0f172a}
+        ${r} .jw-bawrap{position:relative;width:100%;overflow:hidden;border-radius:12px;user-select:none;touch-action:none;background:#e2e8f0;cursor:ew-resize}
+        ${r} .jw-bavert .jw-bawrap{cursor:ns-resize}
+        ${r} .jw-baimg{position:absolute;inset:0}
+        ${r} .jw-baimg img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+        ${r} .jw-baph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:700;font-size:18px;background:#f1f5f9}
+        ${r} .jw-babefore{clip-path:inset(0 calc(100% - var(--p)) 0 0)}
+        ${r} .jw-bavert .jw-babefore{clip-path:inset(0 0 calc(100% - var(--p)) 0)}
+        ${r} .jw-balabel{position:absolute;bottom:12px;background:rgba(9,12,20,.7);color:#fff;font-size:12px;padding:4px 10px;border-radius:999px}
+        ${r} .jw-labafter{right:12px}${r} .jw-labbefore{left:12px}
+        ${r} .jw-bahandle{position:absolute;top:0;bottom:0;left:var(--p);width:3px;background:${handle};transform:translateX(-50%);pointer-events:none}
+        ${r} .jw-bavert .jw-bahandle{top:var(--p);left:0;right:0;bottom:auto;width:auto;height:3px;transform:translateY(-50%)}
+        ${r} .jw-baknob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:${handle};color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);font-size:16px}
+        ${r} .jw-bavert .jw-baknob{transform:translate(-50%,-50%) rotate(90deg)}
+        ${r} .jw-brand{margin-top:12px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Image Slider ───────────────────────────────────────────────────────────
+    case "slider": {
+      const slides = arr(config.slides);
+      const h = Math.max(160, Math.min(720, num(config.height, 360)));
+      const overlay = bool(config.overlay, true);
+      const rounded = bool(config.rounded, true);
+      const arrows = bool(config.showArrows, true);
+      const dots = bool(config.showDots, true);
+      const sl = slides.map((s) => `<div class="jw-slide">
+        ${s.image ? `<img src="${safeUrl(s.image)}" alt="${esc(s.title)}"/>` : `<span class="jw-slph"></span>`}
+        ${overlay ? `<span class="jw-slov"></span>` : ""}
+        ${(s.title || s.text || s.ctaLabel) ? `<div class="jw-slcap"><b>${esc(s.title)}</b>${s.text ? `<span>${esc(s.text)}</span>` : ""}${s.ctaLabel ? `<a class="jw-slcta" href="${safeUrl(s.ctaUrl)}" target="_blank" rel="noopener">${esc(s.ctaLabel)}</a>` : ""}</div>` : ""}
+      </div>`).join("");
+      const dotsHtml = dots ? `<div class="jw-sldots">${slides.map((_, i) => `<button class="jw-sldot${i === 0 ? " jw-active" : ""}" data-i="${i}" type="button" aria-label="Slide ${i + 1}"></button>`).join("")}</div>` : "";
+      const html = `<div class="jw jw-slider" data-autoplay="${bool(config.autoplay, true)}" data-interval="${num(config.interval, 5)}">
+        <div class="jw-slview"${rounded ? ' style="border-radius:16px"' : ""}><div class="jw-sltrack">${sl}</div>
+        ${arrows ? `<button class="jw-slprev" type="button" aria-label="Previous">‹</button><button class="jw-slnext" type="button" aria-label="Next">›</button>` : ""}</div>
+        ${dotsHtml}
+      </div>`;
+      const css = `
+        ${r} .jw-slider{font-family:inherit}
+        ${r} .jw-slview{position:relative;overflow:hidden;height:${h}px}
+        ${r} .jw-sltrack{display:flex;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+        ${r} .jw-slide{position:relative;flex:0 0 100%;height:100%}
+        ${r} .jw-slide img{width:100%;height:100%;object-fit:cover;display:block}
+        ${r} .jw-slph{display:block;width:100%;height:100%;background:linear-gradient(120deg,#99f6e4,#5eead4)}
+        ${r} .jw-slov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,12,20,.55),rgba(9,12,20,.05))}
+        ${r} .jw-slcap{position:absolute;left:0;bottom:0;padding:26px;color:#fff;max-width:70%}
+        ${r} .jw-slcap b{display:block;font-size:26px;font-weight:800;line-height:1.15}
+        ${r} .jw-slcap span{display:block;margin-top:8px;font-size:15px;opacity:.92}
+        ${r} .jw-slcta{display:inline-block;margin-top:14px;background:#fff;color:#0f172a;padding:9px 18px;border-radius:8px;font-weight:600;text-decoration:none}
+        ${r} .jw-slprev,${r} .jw-slnext{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:#0f172a;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        ${r} .jw-slprev{left:14px}${r} .jw-slnext{right:14px}
+        ${r} .jw-sldots{display:flex;gap:7px;justify-content:center;margin-top:12px}
+        ${r} .jw-sldot{width:8px;height:8px;border-radius:50%;border:0;background:#cbd5e1;cursor:pointer;padding:0}
+        ${r} .jw-sldot.jw-active{background:#0d9488;width:22px;border-radius:6px}
+        @media(max-width:640px){${r} .jw-slcap{max-width:90%;padding:18px}${r} .jw-slcap b{font-size:20px}}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Portfolio ──────────────────────────────────────────────────────────────
+    case "portfolio": {
+      const projects = arr(config.projects);
+      const cols = Math.max(2, Math.min(4, num(config.columns, 3)));
+      const accent = col(config.accentColor, "#0d9488");
+      const rounded = bool(config.rounded, true);
+      const filters = bool(config.showFilters, true);
+      const cats: string[] = [];
+      projects.forEach((p) => { const c = String(p.category ?? "").trim(); if (c && cats.indexOf(c) < 0) cats.push(c); });
+      const filterHtml = filters && cats.length
+        ? `<div class="jw-pfilters"><button class="jw-pfilter jw-active" data-cat="*" type="button">All</button>${cats.map((c) => `<button class="jw-pfilter" data-cat="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>`
+        : "";
+      const data = JSON.stringify(projects.map((p) => ({ image: safeUrl(p.image), title: String(p.title ?? ""), category: String(p.category ?? ""), description: String(p.description ?? ""), link: p.link ? safeUrl(p.link) : "" })));
+      const cells = projects.map((p, i) => `<button class="jw-pcell" type="button" data-i="${i}" data-cat="${esc(p.category)}">
+        ${p.image ? `<img src="${safeUrl(p.image)}" alt="${esc(p.title)}" loading="lazy"/>` : `<span class="jw-pph">◧</span>`}
+        <span class="jw-pover"><b>${esc(p.title)}</b>${p.category ? `<em>${esc(p.category)}</em>` : ""}</span>
+      </button>`).join("");
+      const html = `<div class="jw jw-portfolio" data-projects="${esc(data)}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        ${filterHtml}
+        <div class="jw-pgrid">${cells}</div>
+        <div class="jw-pmodal" hidden><div class="jw-pmbd"></div><div class="jw-pmcard"><button class="jw-pmx" type="button" aria-label="Close">×</button><img class="jw-pmimg" alt=""/><div class="jw-pmbody"><span class="jw-pmcat"></span><b class="jw-pmtitle"></b><p class="jw-pmdesc"></p><a class="jw-pmlink" target="_blank" rel="noopener" hidden>View project →</a></div></div></div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-portfolio{font-family:inherit}
+        ${r} .jw-heading{font-size:24px;font-weight:800;text-align:center;margin:0 0 18px;color:#0f172a}
+        ${r} .jw-pfilters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
+        ${r} .jw-pfilter{border:1px solid #e2e8f0;background:#fff;color:#475569;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+        ${r} .jw-pfilter.jw-active{background:${accent};border-color:${accent};color:#fff}
+        ${r} .jw-pgrid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:14px}
+        ${r} .jw-pcell{position:relative;padding:0;border:0;cursor:pointer;overflow:hidden;border-radius:${rounded ? "14px" : "2px"};aspect-ratio:4/3;background:#f1f5f9;display:block}
+        ${r} .jw-pcell img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+        ${r} .jw-pcell:hover img{transform:scale(1.06)}
+        ${r} .jw-pph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-size:34px}
+        ${r} .jw-pover{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;text-align:left;background:linear-gradient(transparent 40%,rgba(9,12,20,.75));color:#fff;opacity:0;transition:opacity .25s}
+        ${r} .jw-pcell:hover .jw-pover{opacity:1}
+        ${r} .jw-pover b{font-size:16px}${r} .jw-pover em{font-style:normal;font-size:12px;color:#a7f3d0}
+        ${r} .jw-pmodal{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:20px}
+        ${r} .jw-pmbd{position:absolute;inset:0;background:rgba(9,12,20,.8)}
+        ${r} .jw-pmcard{position:relative;background:#fff;border-radius:16px;overflow:hidden;max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
+        ${r} .jw-pmimg{width:100%;max-height:340px;object-fit:cover;display:block;background:#f1f5f9}
+        ${r} .jw-pmbody{padding:20px}
+        ${r} .jw-pmcat{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${accent}}
+        ${r} .jw-pmtitle{display:block;font-size:22px;color:#0f172a;margin:4px 0 8px}
+        ${r} .jw-pmdesc{margin:0;color:#475569;line-height:1.6}
+        ${r} .jw-pmlink{display:inline-block;margin-top:14px;color:${accent};font-weight:600;text-decoration:none}
+        ${r} .jw-pmx{position:absolute;top:12px;right:12px;z-index:1;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.9);cursor:pointer;font-size:22px}
+        ${r} .jw-brand{margin-top:16px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}
+        @media(max-width:640px){${r} .jw-pgrid{grid-template-columns:1fr 1fr}}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Restaurant Menu ────────────────────────────────────────────────────────
+    case "menu": {
+      const items = arr(config.items);
+      const cur = String(config.currency ?? "₹");
+      const accent = col(config.accentColor, "#0d9488");
+      const cols = Math.max(1, Math.min(2, num(config.columns, 1)));
+      const order: string[] = [];
+      const map: Record<string, Cfg[]> = {};
+      items.forEach((it) => { const s = String(it.section ?? "Menu"); if (!map[s]) { map[s] = []; order.push(s); } map[s].push(it); });
+      const secs = order.map((s) => `<div class="jw-msec"><h4 class="jw-mstitle">${esc(s)}</h4><div class="jw-mitems">${map[s]
+        .map((it) => `<div class="jw-mitem"><div class="jw-minfo"><b>${esc(it.name)}${it.tag ? `<span class="jw-mtag">${esc(it.tag)}</span>` : ""}</b>${it.description ? `<span class="jw-mdesc">${esc(it.description)}</span>` : ""}</div><span class="jw-mprice">${esc(cur)}${esc(it.price)}</span></div>`)
+        .join("")}</div></div>`).join("");
+      const html = `<div class="jw jw-menu">${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}<div class="jw-mgrid">${secs}</div>${brand}</div>`;
+      const css = `
+        ${r} .jw-menu{font-family:inherit}
+        ${r} .jw-heading{font-size:26px;font-weight:800;text-align:center;margin:0 0 24px;color:#0f172a}
+        ${r} .jw-mgrid{columns:${cols};column-gap:40px}
+        ${r} .jw-msec{break-inside:avoid;margin-bottom:26px}
+        ${r} .jw-mstitle{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${accent};margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid ${accent}33}
+        ${r} .jw-mitem{display:flex;justify-content:space-between;gap:16px;align-items:baseline;padding:9px 0}
+        ${r} .jw-minfo b{font-size:16px;color:#0f172a;font-weight:600}
+        ${r} .jw-mtag{margin-left:8px;font-size:11px;font-weight:700;color:${accent};border:1px solid ${accent}44;border-radius:999px;padding:1px 7px;vertical-align:middle}
+        ${r} .jw-mdesc{display:block;font-size:13px;color:#64748b;margin-top:2px}
+        ${r} .jw-mprice{font-weight:700;color:#0f172a;white-space:nowrap}
+        ${r} .jw-brand{margin-top:12px;font-size:12px;text-align:center}${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Age Verification (overlay) ─────────────────────────────────────────────
+    case "agegate": {
+      const mode = String(config.mode ?? "yesno");
+      const bg = col(config.bgColor, "#0b1220");
+      const accent = col(config.accentColor, "#0d9488");
+      const html = `<div class="jw jw-agegate" data-mode="${mode}" data-min="${num(config.minAge, 18)}" data-remember="${num(config.rememberDays, 30)}" data-reject="${config.rejectUrl ? safeUrl(config.rejectUrl) : ""}" data-rejectmsg="${esc(config.rejectMessage)}" data-key="${esc(opts.embedKey ?? opts.id)}" hidden>
+        <div class="jw-agbd"></div>
+        <div class="jw-agcard">
+          <h3 class="jw-agtitle">${esc(config.heading)}</h3>
+          <p class="jw-agmsg">${esc(config.message)}</p>
+          ${mode === "birthyear" ? `<input class="jw-agyear" type="number" inputmode="numeric" placeholder="Enter birth year (YYYY)"/>` : ""}
+          <div class="jw-agbtns"><button class="jw-agok" type="button">${esc(config.confirmLabel)}</button><button class="jw-agno" type="button">${esc(config.rejectLabel)}</button></div>
+          <div class="jw-agerr" hidden></div>
+        </div>
+      </div>`;
+      const css = `
+        ${r} .jw-agegate{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}
+        ${r} .jw-agbd{position:absolute;inset:0;background:rgba(3,7,18,.9);backdrop-filter:blur(4px)}
+        ${r} .jw-agcard{position:relative;background:${bg};color:#fff;border-radius:18px;padding:34px;max-width:420px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+        ${r} .jw-agtitle{font-size:24px;font-weight:800;margin:0 0 10px}
+        ${r} .jw-agmsg{margin:0 0 20px;color:#cbd5e1;line-height:1.5}
+        ${r} .jw-agyear{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;font-size:16px;margin-bottom:16px;text-align:center}
+        ${r} .jw-agbtns{display:flex;gap:10px}
+        ${r} .jw-agok,${r} .jw-agno{flex:1;padding:12px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:0}
+        ${r} .jw-agok{background:${accent};color:#fff}
+        ${r} .jw-agno{background:rgba(255,255,255,.1);color:#e2e8f0}
+        ${r} .jw-agerr{margin-top:14px;color:#fca5a5;font-size:14px}`;
+      return { mode: "overlay", html, css };
+    }
+
+    // ── Cookie Consent (overlay) ───────────────────────────────────────────────
+    case "cookie": {
+      const style = String(config.style ?? "banner");
+      const bg = col(config.bgColor, "#0b1220");
+      const tc = col(config.textColor, "#e2e8f0");
+      const accent = col(config.accentColor, "#0d9488");
+      const policy = config.policyUrl ? `<a class="jw-cklink" href="${safeUrl(config.policyUrl)}" target="_blank" rel="noopener">${esc(config.policyLabel || "Cookie policy")}</a>` : "";
+      const html = `<div class="jw jw-cookie jw-${style}" data-remember="${num(config.rememberDays, 180)}" data-key="${esc(opts.embedKey ?? opts.id)}" hidden>
+        <div class="jw-ckcard">
+          <p class="jw-ckmsg">${esc(config.message)} ${policy}</p>
+          <div class="jw-ckbtns"><button class="jw-ckno" type="button">${esc(config.rejectLabel)}</button><button class="jw-ckok" type="button">${esc(config.acceptLabel)}</button></div>
+        </div>
+      </div>`;
+      const css = `
+        ${r} .jw-cookie{position:fixed;z-index:2147483400;font-family:inherit}
+        ${r} .jw-banner{left:0;right:0;bottom:0}
+        ${r} .jw-banner .jw-ckcard{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;background:${bg};color:${tc};padding:16px 20px;box-shadow:0 -6px 24px rgba(0,0,0,.18)}
+        ${r} .jw-floating{left:20px;bottom:20px;max-width:360px}
+        ${r} .jw-floating .jw-ckcard{background:${bg};color:${tc};padding:20px;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+        ${r} .jw-ckmsg{margin:0;font-size:14px;line-height:1.5}
+        ${r} .jw-floating .jw-ckmsg{margin-bottom:16px}
+        ${r} .jw-cklink{color:${accent};text-decoration:underline;font-weight:600}
+        ${r} .jw-ckbtns{display:flex;gap:10px;flex-shrink:0}
+        ${r} .jw-floating .jw-ckbtns{justify-content:flex-end}
+        ${r} .jw-ckok,${r} .jw-ckno{padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:0}
+        ${r} .jw-ckok{background:${accent};color:#fff}
+        ${r} .jw-ckno{background:rgba(255,255,255,.12);color:${tc}}`;
+      return { mode: "overlay", html, css };
+    }
+
     default:
       return { mode: "block", html: `<div class="jw">Unknown tool.</div>`, css: "" };
   }

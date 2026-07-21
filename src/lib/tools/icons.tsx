@@ -1,6 +1,7 @@
 import {
   Star, MessageCircle, FileText, Megaphone, Timer, Camera, HelpCircle, MapPin, Bot,
   Clock, Hash, Building2, Users, History, ArrowUpToLine, Images, MousePointerClick,
+  SplitSquareHorizontal, GalleryHorizontalEnd, LayoutGrid, UtensilsCrossed, ShieldAlert, Cookie,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,6 +22,12 @@ export const TOOL_ICONS: Record<string, LucideIcon> = {
   backtotop: ArrowUpToLine,
   gallery: Images,
   button: MousePointerClick,
+  beforeafter: SplitSquareHorizontal,
+  slider: GalleryHorizontalEnd,
+  portfolio: LayoutGrid,
+  menu: UtensilsCrossed,
+  agegate: ShieldAlert,
+  cookie: Cookie,
 };
 
 export function toolIcon(key: string): LucideIcon {

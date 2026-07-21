@@ -629,6 +629,224 @@ export const TOOLS: ToolDef[] = [
       { name: "Call Button", useCase: "Contact", industry: "Services", preset: { label: "Call us now", action: "tel", target: "+919876543210", icon: "📞" } },
     ],
   },
+
+  // 17 ── Before / After Comparison ───────────────────────────────────────────
+  {
+    key: "beforeafter",
+    name: "Before / After",
+    categorySlug: "content",
+    badges: ["New"],
+    description: "A draggable slider to compare two images — transformations, edits, renovations.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "" },
+        { key: "beforeImage", label: "Before image", type: "image", group: "content", default: "" },
+        { key: "afterImage", label: "After image", type: "image", group: "content", default: "" },
+        { key: "beforeLabel", label: "Before label", type: "text", group: "content", default: "Before" },
+        { key: "afterLabel", label: "After label", type: "text", group: "content", default: "After" },
+        { key: "orientation", label: "Orientation", type: "select", group: "layout", default: "horizontal",
+          options: [{ value: "horizontal", label: "Horizontal" }, { value: "vertical", label: "Vertical" }] },
+        { key: "aspect", label: "Aspect ratio", type: "select", group: "layout", default: "16/9",
+          options: [{ value: "16/9", label: "16:9" }, { value: "4/3", label: "4:3" }, { value: "1/1", label: "Square" }] },
+        { key: "startPos", label: "Start position (%)", type: "number", group: "behaviour", default: 50, min: 0, max: 100 },
+        { key: "handleColor", label: "Handle colour", type: "color", group: "style", default: "#0d9488" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Photo Retouch", useCase: "Photography", industry: "Photography", preset: {} },
+      { name: "Renovation", useCase: "Home services", industry: "Construction", preset: { beforeLabel: "Old", afterLabel: "New" } },
+    ],
+  },
+
+  // 18 ── Image / Video Slider ────────────────────────────────────────────────
+  {
+    key: "slider",
+    name: "Image Slider",
+    categorySlug: "marketing",
+    badges: ["Popular"],
+    description: "A responsive slider for banners, promotions, and hero content.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        {
+          key: "slides", label: "Slides", type: "list", group: "content", addLabel: "Add slide",
+          default: [
+            { image: "", title: "Summer Collection", text: "Fresh styles for the season.", ctaLabel: "Shop now", ctaUrl: "" },
+            { image: "", title: "Free Shipping", text: "On all orders over ₹999.", ctaLabel: "Learn more", ctaUrl: "" },
+            { image: "", title: "New Arrivals", text: "Just landed — be the first.", ctaLabel: "Explore", ctaUrl: "" },
+          ],
+          itemFields: [
+            { key: "image", label: "Image", type: "image", group: "content", default: "" },
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "text", label: "Text", type: "textarea", group: "content", default: "" },
+            { key: "ctaLabel", label: "Button label", type: "text", group: "content", default: "" },
+            { key: "ctaUrl", label: "Button link", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "height", label: "Height (px)", type: "number", group: "layout", default: 360, min: 160, max: 720 },
+        { key: "overlay", label: "Darken image for text", type: "toggle", group: "style", default: true },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+        { key: "autoplay", label: "Autoplay", type: "toggle", group: "behaviour", default: true },
+        { key: "interval", label: "Autoplay interval (s)", type: "number", group: "behaviour", default: 5, min: 2, max: 30 },
+        { key: "showArrows", label: "Show arrows", type: "toggle", group: "behaviour", default: true },
+        { key: "showDots", label: "Show dots", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Hero Banner", useCase: "Homepage", industry: "E-commerce", preset: { height: 420 } },
+      { name: "Promo Carousel", useCase: "Campaign", industry: "Retail", preset: {} },
+    ],
+  },
+
+  // 19 ── Portfolio Showcase ──────────────────────────────────────────────────
+  {
+    key: "portfolio",
+    name: "Portfolio",
+    categorySlug: "content",
+    badges: ["No-code"],
+    description: "Showcase projects in a filterable grid with a detail lightbox.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Selected work" },
+        {
+          key: "projects", label: "Projects", type: "list", group: "content", addLabel: "Add project",
+          default: [
+            { image: "", title: "Brand Redesign", category: "Branding", description: "A complete visual identity refresh for a modern retail brand.", link: "" },
+            { image: "", title: "Mobile App", category: "Product", description: "End-to-end design and build of an on-demand delivery app.", link: "" },
+            { image: "", title: "Marketing Site", category: "Web", description: "A high-converting landing page and CMS.", link: "" },
+            { image: "", title: "Packaging", category: "Branding", description: "Sustainable packaging design for a skincare line.", link: "" },
+          ],
+          itemFields: [
+            { key: "image", label: "Cover image", type: "image", group: "content", default: "" },
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "category", label: "Category", type: "text", group: "content", default: "" },
+            { key: "description", label: "Description", type: "textarea", group: "content", default: "" },
+            { key: "link", label: "Link", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 3, min: 2, max: 4 },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+        { key: "showFilters", label: "Show category filters", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Design Portfolio", useCase: "Creative", industry: "Design", preset: {} },
+      { name: "Agency Work", useCase: "Agency", industry: "Agency", preset: { columns: 4 } },
+    ],
+  },
+
+  // 20 ── Restaurant Menu ─────────────────────────────────────────────────────
+  {
+    key: "menu",
+    name: "Restaurant Menu",
+    categorySlug: "content",
+    badges: ["No-code"],
+    description: "A clean, categorized menu with dishes, descriptions, and prices.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Our menu" },
+        { key: "currency", label: "Currency symbol", type: "text", group: "content", default: "₹" },
+        {
+          key: "items", label: "Dishes", type: "list", group: "content", addLabel: "Add dish",
+          default: [
+            { section: "Starters", name: "Paneer Tikka", description: "Char-grilled cottage cheese with spices.", price: "260", tag: "Veg" },
+            { section: "Starters", name: "Chicken 65", description: "Crispy, spicy South-Indian favourite.", price: "290", tag: "Spicy" },
+            { section: "Mains", name: "Butter Chicken", description: "Creamy tomato gravy, tender chicken.", price: "380", tag: "" },
+            { section: "Mains", name: "Dal Makhani", description: "Slow-cooked black lentils.", price: "290", tag: "Veg" },
+            { section: "Desserts", name: "Gulab Jamun", description: "Warm, syrup-soaked dumplings.", price: "140", tag: "" },
+          ],
+          itemFields: [
+            { key: "section", label: "Section", type: "text", group: "content", default: "" },
+            { key: "name", label: "Dish", type: "text", group: "content", default: "" },
+            { key: "description", label: "Description", type: "text", group: "content", default: "" },
+            { key: "price", label: "Price", type: "text", group: "content", default: "" },
+            { key: "tag", label: "Tag (Veg/Spicy…)", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 1, min: 1, max: 2 },
+        { key: "accentColor", label: "Accent", type: "color", group: "style", default: "#0d9488" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Dinner Menu", useCase: "Restaurant", industry: "Food", preset: {} },
+      { name: "Cafe Menu", useCase: "Cafe", industry: "Food", preset: { heading: "Cafe menu", columns: 2 } },
+    ],
+  },
+
+  // 21 ── Age Verification ────────────────────────────────────────────────────
+  {
+    key: "agegate",
+    name: "Age Verification",
+    categorySlug: "utility",
+    badges: ["No-code"],
+    description: "A configurable age gate before visitors can view your site.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Are you of legal age?" },
+        { key: "message", label: "Message", type: "textarea", group: "content", default: "You must be of legal age to enter this website." },
+        { key: "mode", label: "Verification", type: "select", group: "content", default: "yesno",
+          options: [{ value: "yesno", label: "Yes / No" }, { value: "birthyear", label: "Enter birth year" }] },
+        { key: "minAge", label: "Minimum age", type: "number", group: "content", default: 18, min: 13, max: 25 },
+        { key: "confirmLabel", label: "Confirm button", type: "text", group: "content", default: "Yes, enter" },
+        { key: "rejectLabel", label: "Reject button", type: "text", group: "content", default: "No, leave" },
+        { key: "rejectMessage", label: "Rejection message", type: "text", group: "content", default: "Sorry, you are not old enough to view this content." },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0b1220" },
+        { key: "accentColor", label: "Button colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "rejectUrl", label: "Redirect on reject (URL)", type: "url", group: "behaviour", default: "" },
+        { key: "rememberDays", label: "Remember for (days)", type: "number", group: "behaviour", default: 30, min: 0, max: 365 },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Simple Gate", useCase: "18+ content", industry: "General", preset: {} },
+      { name: "Birth Year", useCase: "Alcohol / tobacco", industry: "Beverages", preset: { mode: "birthyear", minAge: 21, heading: "Verify your age" } },
+    ],
+  },
+
+  // 22 ── Cookie Consent ──────────────────────────────────────────────────────
+  {
+    key: "cookie",
+    name: "Cookie Consent",
+    categorySlug: "utility",
+    badges: ["No-code"],
+    description: "A cookie-consent banner that remembers the visitor's choice.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "message", label: "Message", type: "textarea", group: "content", default: "We use cookies to improve your experience. By continuing, you agree to our use of cookies." },
+        { key: "acceptLabel", label: "Accept button", type: "text", group: "content", default: "Accept all" },
+        { key: "rejectLabel", label: "Reject button", type: "text", group: "content", default: "Reject" },
+        { key: "policyLabel", label: "Policy link text", type: "text", group: "content", default: "Cookie policy" },
+        { key: "policyUrl", label: "Policy URL", type: "url", group: "content", default: "" },
+        { key: "style", label: "Style", type: "select", group: "layout", default: "banner",
+          options: [{ value: "banner", label: "Bottom banner" }, { value: "floating", label: "Floating card" }] },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0b1220" },
+        { key: "textColor", label: "Text", type: "color", group: "style", default: "#e2e8f0" },
+        { key: "accentColor", label: "Accept button", type: "color", group: "style", default: "#0d9488" },
+        { key: "rememberDays", label: "Remember for (days)", type: "number", group: "behaviour", default: 180, min: 1, max: 365 },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Simple Banner", useCase: "Any site", industry: "General", preset: {} },
+      { name: "Floating Card", useCase: "Any site", industry: "General", preset: { style: "floating" } },
+    ],
+  },
 ];
 
 export function toolByKey(key: string): ToolDef | undefined {
