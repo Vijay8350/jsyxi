@@ -7,7 +7,7 @@ import { requireWorkspaceContext, type WorkspaceContext } from "@/lib/auth/curre
 import { workspaceCan } from "@/lib/permissions";
 import { newEmbedKey } from "@/lib/ids";
 import { toolByKey } from "@/lib/tools/registry";
-import { defaultsFromSchema, type ToolConfigSchema } from "@/lib/tools/types";
+import { defaultsFromSchema } from "@/lib/tools/types";
 import { activeWidgetCount } from "@/lib/metering";
 import { writeAudit } from "@/lib/audit";
 import { normalizeHost } from "@/lib/utils";
@@ -169,5 +169,3 @@ export async function updateAllowedDomainsAction(widgetId: string, domainsRaw: s
   revalidatePath(`/app/widgets/${widget.id}`);
   return { ok: true, message: domains.length ? `Restricted to ${domains.length} domain(s).` : "Allowed on any domain." };
 }
-
-export type { ToolConfigSchema };

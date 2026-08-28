@@ -7,8 +7,8 @@ import { saveContentAction, deleteContentAction } from "@/lib/actions/admin/cont
 import { initialActionState } from "@/lib/actions/result";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { RichBodyField, CoverImageField } from "@/components/admin/rich-body";
 import { Field } from "@/components/ui/label";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/misc";
@@ -63,11 +63,11 @@ function ContentFields({ c }: { c?: ContentValues }) {
       <Field label="Excerpt" htmlFor={`c-ex-${uid}`}>
         <Input id={`c-ex-${uid}`} name="excerpt" defaultValue={c?.excerpt ?? ""} />
       </Field>
-      <Field label="Cover image URL" htmlFor={`c-cover-${uid}`}>
-        <Input id={`c-cover-${uid}`} name="coverImage" defaultValue={c?.coverImage ?? ""} placeholder="https://…" />
+      <Field label="Cover image" htmlFor={`c-cover-${uid}`} hint="Paste a URL or upload an image">
+        <CoverImageField id={`c-cover-${uid}`} defaultValue={c?.coverImage ?? ""} />
       </Field>
-      <Field label="Body" htmlFor={`c-body-${uid}`}>
-        <Textarea id={`c-body-${uid}`} name="body" defaultValue={c?.body} className="min-h-40" required />
+      <Field label="Body" htmlFor={`c-body-${uid}`} hint="Toolbar for headings, bold, lists, links and images · Markdown supported">
+        <RichBodyField id={`c-body-${uid}`} defaultValue={c?.body ?? ""} required />
       </Field>
     </>
   );

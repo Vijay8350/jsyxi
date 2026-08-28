@@ -13,10 +13,11 @@ export default async function ReviewsPage() {
   const staff = await requireStaff();
   if (!staffCanAccess(staff.staffRole, "reviews")) return <AccessDenied section="reviews" />;
 
-  const [items, approved, featured] = await Promise.all([
+  const [items, approved, featured, tools] = await Promise.all([
     prisma.siteTestimonial.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }] }),
     prisma.siteTestimonial.count({ where: { approved: true } }),
     prisma.siteTestimonial.count({ where: { featured: true } }),
+    prisma.tool.findMany({ where: { status: "published" }, orderBy: { sortOrder: "asc" }, select: { key: true, name: true } }),
   ]);
 
   return (
@@ -31,7 +32,7 @@ export default async function ReviewsPage() {
 
       <Card>
         <CardHeader><CardTitle>Add testimonial</CardTitle></CardHeader>
-        <CardBody className="px-0 py-0"><TestimonialCreate /></CardBody>
+        <CardBody className="px-0 py-0"><TestimonialCreate tools={tools} /></CardBody>
       </Card>
 
       <Card>
@@ -40,7 +41,7 @@ export default async function ReviewsPage() {
           {items.length === 0 ? (
             <p className="px-4 py-6 text-center text-sm text-slate-400">No testimonials yet.</p>
           ) : (
-            items.map((t) => <TestimonialRowEditor key={t.id} t={t as TestimonialRow} />)
+            items.map((t) => <TestimonialRowEditor key={t.id} t={t as TestimonialRow} tools={tools} />)
           )}
         </CardBody>
       </Card>

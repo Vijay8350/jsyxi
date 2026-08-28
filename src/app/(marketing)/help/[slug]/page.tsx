@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { ButtonLink } from "@/components/ui/button";
-import { ArticleBody } from "@/components/marketing/sections";
+import { ArticleBody, DualCta, TechBackdrop } from "@/components/marketing/sections";
+import { Reveal } from "@/components/marketing/reveal";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -35,27 +36,49 @@ export default async function HelpArticlePage({ params }: Params) {
   if (!article) notFound();
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-16">
-      <Link href="/help" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700">
-        <ArrowLeft className="h-4 w-4" /> Help center
-      </Link>
-
-      <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">{article.title}</h1>
-      {article.excerpt && <p className="mt-3 text-lg text-slate-600">{article.excerpt}</p>}
-
-      <div className="mt-8">
-        <ArticleBody body={article.body} />
-      </div>
-
-      <div className="mt-12 flex flex-col items-center justify-between gap-4 rounded-2xl border border-line bg-canvas p-6 sm:flex-row">
-        <div>
-          <p className="font-semibold text-ink">Still need help?</p>
-          <p className="mt-1 text-sm text-slate-600">Reach our support team and we&apos;ll get you sorted.</p>
+    <>
+      <section className="relative isolate overflow-hidden border-b border-line/70 bg-hero-grid">
+        <TechBackdrop className="-z-10" />
+        <div className="relative mx-auto max-w-3xl px-4 py-14 sm:py-20">
+          <Link
+            href="/help"
+            className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800"
+          >
+            <ArrowLeft className="h-4 w-4" /> Help center
+          </Link>
+          <Reveal className="mt-5">
+            <p className="section-kicker">Guide</p>
+            <h1 className="mt-3 text-[clamp(2.35rem,9vw,4.25rem)] font-extrabold leading-[1.03] tracking-[-0.04em] text-ink">
+              {article.title}
+            </h1>
+            {article.excerpt && <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">{article.excerpt}</p>}
+          </Reveal>
         </div>
-        <ButtonLink href="/contact" variant="secondary">
-          <MessageCircle className="h-4 w-4" /> Contact support
-        </ButtonLink>
-      </div>
-    </article>
+      </section>
+
+      <article className="mx-auto max-w-3xl px-4 py-14 sm:py-16">
+        <Reveal>
+          <ArticleBody body={article.body} />
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div className="premium-card mt-12 flex flex-col items-start justify-between gap-5 rounded-2xl p-6 sm:flex-row sm:items-center">
+            <div>
+              <p className="font-semibold text-ink">Still need help?</p>
+              <p className="mt-1 text-sm text-slate-600">Reach our support team and we&apos;ll get you sorted.</p>
+            </div>
+            <ButtonLink href="/contact" variant="secondary" className="w-full rounded-full sm:w-auto">
+              <MessageCircle className="h-4 w-4" /> Contact support
+            </ButtonLink>
+          </div>
+        </Reveal>
+      </article>
+
+      <DualCta
+        title="From question to working widget"
+        description="Create your first widget free, or ask our team to help you choose and launch the right setup."
+        secondary={{ href: "/contact", label: "Ask the team" }}
+      />
+    </>
   );
 }

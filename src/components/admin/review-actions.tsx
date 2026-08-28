@@ -21,7 +21,22 @@ export type TestimonialRow = {
   approved: boolean;
   featured: boolean;
   sortOrder: number;
+  toolKey: string | null;
 };
+
+export type ToolOption = { key: string; name: string };
+
+// Dropdown to scope a testimonial to a specific tool's landing page (or leave general).
+function ToolSelect({ id, tools, defaultValue }: { id: string; tools: ToolOption[]; defaultValue?: string }) {
+  return (
+    <Field label="Show on tool" htmlFor={id} hint="Appears under that widget's live demo">
+      <Select id={id} name="toolKey" defaultValue={defaultValue ?? ""}>
+        <option value="">General — all pages</option>
+        {tools.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+      </Select>
+    </Field>
+  );
+}
 
 function FlagButton({ id, flag, active, label }: { id: string; flag: "approved" | "featured"; active: boolean; label: string }) {
   const [, action] = useActionState(toggleTestimonialFlagAction, initialActionState);
@@ -36,7 +51,7 @@ function FlagButton({ id, flag, active, label }: { id: string; flag: "approved" 
   );
 }
 
-export function TestimonialRowEditor({ t }: { t: TestimonialRow }) {
+export function TestimonialRowEditor({ t, tools }: { t: TestimonialRow; tools: ToolOption[] }) {
   const [state, action] = useActionState(saveTestimonialAction, initialActionState);
   return (
     <div className="border-b border-line px-4 py-4 last:border-0">
@@ -67,6 +82,7 @@ export function TestimonialRowEditor({ t }: { t: TestimonialRow }) {
             <Field label="Sort" htmlFor={`t-sort-${t.id}`}><Input id={`t-sort-${t.id}`} name="sortOrder" type="number" min={0} defaultValue={t.sortOrder} /></Field>
           </div>
         </div>
+        <ToolSelect id={`t-tool-${t.id}`} tools={tools} defaultValue={t.toolKey ?? ""} />
         <Field label="Body" htmlFor={`t-body-${t.id}`}><Textarea id={`t-body-${t.id}`} name="body" defaultValue={t.body} required /></Field>
         <SubmitButton size="sm" variant="secondary" pendingText="Saving…">Save</SubmitButton>
       </form>
@@ -74,7 +90,7 @@ export function TestimonialRowEditor({ t }: { t: TestimonialRow }) {
   );
 }
 
-export function TestimonialCreate() {
+export function TestimonialCreate({ tools }: { tools: ToolOption[] }) {
   const [state, action] = useActionState(saveTestimonialAction, initialActionState);
   return (
     <details className="group">
@@ -97,6 +113,7 @@ export function TestimonialCreate() {
               <Field label="Sort" htmlFor="t-sort-new"><Input id="t-sort-new" name="sortOrder" type="number" min={0} defaultValue={0} /></Field>
             </div>
           </div>
+          <ToolSelect id="t-tool-new" tools={tools} />
           <Field label="Body" htmlFor="t-body-new"><Textarea id="t-body-new" name="body" required /></Field>
           <SubmitButton size="sm" pendingText="Creating…">Create testimonial</SubmitButton>
         </form>

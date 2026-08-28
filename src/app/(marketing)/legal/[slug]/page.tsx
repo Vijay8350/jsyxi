@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArticleBody } from "@/components/marketing/sections";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArticleBody, TechBackdrop } from "@/components/marketing/sections";
+import { Reveal } from "@/components/marketing/reveal";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -111,22 +113,41 @@ export default async function LegalPage({ params }: Params) {
   const otherLabel = other === "terms" ? "Terms of Service" : "Privacy Policy";
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-16">
-      <p className="text-sm font-medium text-brand-600">Legal</p>
-      <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">{doc.title}</h1>
-      <p className="mt-3 text-sm text-slate-500">Last updated: {doc.updated}</p>
+    <>
+      <section className="relative isolate overflow-hidden border-b border-line/70 bg-hero-grid">
+        <TechBackdrop className="-z-10" />
+        <div className="relative mx-auto max-w-3xl px-4 py-14 sm:py-20">
+          <Reveal>
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg shadow-brand-700/20">
+              <ShieldCheck className="h-6 w-6" />
+            </span>
+            <p className="section-kicker mt-6">Legal &amp; trust</p>
+            <h1 className="mt-3 text-[clamp(2.45rem,9vw,4.5rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-ink">
+              {doc.title}
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">{doc.description}</p>
+            <p className="mt-4 text-sm font-medium text-slate-500">Last updated: {doc.updated}</p>
+          </Reveal>
+        </div>
+      </section>
 
-      <div className="mt-10">
-        <ArticleBody body={doc.body} />
-      </div>
+      <article className="mx-auto max-w-3xl px-4 py-14 sm:py-16">
+        <Reveal>
+          <ArticleBody body={doc.body} />
+        </Reveal>
 
-      <div className="mt-12 border-t border-line pt-6 text-sm text-slate-500">
-        Looking for our{" "}
-        <Link href={`/legal/${other}`} className="text-brand-600 hover:text-brand-700">
-          {otherLabel}
-        </Link>
-        ?
-      </div>
-    </article>
+        <Reveal delay={100}>
+          <Link
+            href={`/legal/${other}`}
+            className="premium-card group mt-12 flex min-h-20 items-center justify-between gap-4 rounded-2xl p-5 text-sm text-slate-600"
+          >
+            <span>
+              Looking for our <strong className="font-semibold text-ink">{otherLabel}</strong>?
+            </span>
+            <ArrowRight className="h-5 w-5 shrink-0 text-brand-700 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </Reveal>
+      </article>
+    </>
   );
 }

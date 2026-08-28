@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { EmptyState } from "@/components/ui/misc";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHero, DualCta } from "@/components/marketing/sections";
+import { ContentCover } from "@/components/marketing/content-cover";
+import { Reveal } from "@/components/marketing/reveal";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -54,17 +56,17 @@ export default async function BlogPage() {
             {featured && (
               <Link
                 href={`/blog/${featured.slug}`}
-                className="group grid overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md md:grid-cols-2"
+                className="premium-card group grid overflow-hidden rounded-[1.75rem] md:grid-cols-2"
               >
                 <div className="relative aspect-[16/10] w-full overflow-hidden bg-brand-50 md:aspect-auto">
-                  {featured.coverImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={featured.coverImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                  ) : (
-                    <span className="flex h-full min-h-56 w-full items-center justify-center text-brand-300">
-                      <Newspaper className="h-12 w-12" />
-                    </span>
-                  )}
+                  <ContentCover
+                    src={featured.coverImage}
+                    title={featured.title}
+                    fallback="studio"
+                    preload
+                    sizes="(max-width: 767px) calc(100vw - 2rem), (max-width: 1151px) calc((100vw - 2rem) / 2), 560px"
+                    className="transition-transform duration-700 group-hover:scale-105"
+                  />
                 </div>
                 <div className="flex flex-col justify-center p-8">
                   <span className="text-xs font-semibold uppercase tracking-wide text-brand-600">Featured</span>
@@ -80,30 +82,29 @@ export default async function BlogPage() {
 
             {rest.length > 0 && (
               <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {rest.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/blog/${p.slug}`}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition hover:border-brand-200 hover:shadow-md"
-                  >
-                    <div className="relative aspect-[16/9] w-full overflow-hidden bg-brand-50">
-                      {p.coverImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.coverImage} alt="" className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-105" />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center text-brand-300">
-                          <Newspaper className="h-9 w-9" />
+                {rest.map((p, index) => (
+                  <Reveal key={p.id} delay={(index % 3) * 70}>
+                    <Link
+                      href={`/blog/${p.slug}`}
+                      className="premium-card group flex h-full flex-col overflow-hidden rounded-2xl"
+                    >
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-brand-50">
+                        <ContentCover
+                          src={p.coverImage}
+                          title={p.title}
+                          fallback={index % 2 === 0 ? "merchant" : "workspace"}
+                          className="transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="flex flex-1 flex-col p-6">
+                        <h2 className="font-semibold text-ink group-hover:text-brand-700">{p.title}</h2>
+                        {p.excerpt && <p className="mt-2 flex-1 text-sm text-slate-500 line-clamp-3">{p.excerpt}</p>}
+                        <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600">
+                          Read more <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                         </span>
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col p-6">
-                      <h2 className="font-semibold text-ink group-hover:text-brand-700">{p.title}</h2>
-                      {p.excerpt && <p className="mt-2 flex-1 text-sm text-slate-500 line-clamp-3">{p.excerpt}</p>}
-                      <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600">
-                        Read more <ArrowRight className="h-4 w-4" />
-                      </span>
-                    </div>
-                  </Link>
+                      </div>
+                    </Link>
+                  </Reveal>
                 ))}
               </div>
             )}

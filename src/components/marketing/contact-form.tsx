@@ -73,25 +73,42 @@ export function ContactForm() {
 
   // Generate idempotency key and slot list client-side to avoid hydration drift.
   useEffect(() => {
-    setRequestKey(crypto.randomUUID());
-    setDays(buildSlots());
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setRequestKey(crypto.randomUUID());
+      setDays(buildSlots());
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   if (state.ok) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-8 text-center">
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-8 text-center shadow-sm">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-          <CheckCircle2 className="h-7 w-7" />
+          <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
         </span>
         <h2 className="mt-4 text-xl font-bold text-ink">Thank you!</h2>
         <p className="mx-auto mt-2 max-w-md text-slate-600">
           {state.message ?? "We've received your message and will be in touch soon."}
         </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <ButtonLink href="/tools" variant="secondary">
+        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <ButtonLink
+            href="/tools"
+            variant="secondary"
+            className="w-full motion-reduce:transform-none motion-reduce:transition-none sm:w-auto"
+          >
             Browse tools
           </ButtonLink>
-          <ButtonLink href="/signup">Start free</ButtonLink>
+          <ButtonLink
+            href="/signup"
+            className="w-full motion-reduce:transform-none motion-reduce:transition-none sm:w-auto"
+          >
+            Start free
+          </ButtonLink>
         </div>
       </div>
     );
@@ -106,20 +123,31 @@ export function ContactForm() {
   })();
 
   return (
-    <div className="rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-8">
+    <div className="rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md motion-reduce:transition-none sm:p-8">
       {/* Tabs */}
-      <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-        <TabButton active={mode === "enquiry"} onClick={() => setMode("enquiry")} icon={<MessageSquare className="h-4 w-4" />}>
+      <div
+        className="mb-6 grid grid-cols-1 gap-2 rounded-xl bg-slate-100 p-1 sm:grid-cols-2"
+        role="group"
+        aria-label="Contact form type"
+      >
+        <TabButton
+          active={mode === "enquiry"}
+          onClick={() => setMode("enquiry")}
+          icon={<MessageSquare className="h-4 w-4" aria-hidden="true" />}
+        >
           Send an enquiry
         </TabButton>
         <TabButton
           active={mode === "consultation"}
           onClick={() => setMode("consultation")}
-          icon={<CalendarClock className="h-4 w-4" />}
+          icon={<CalendarClock className="h-4 w-4" aria-hidden="true" />}
         >
           Book a consultation
         </TabButton>
       </div>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {mode === "enquiry" ? "Enquiry form selected." : "Consultation booking form selected."}
+      </p>
 
       {state.error && (
         <Alert tone="error" className="mb-4">
@@ -170,8 +198,11 @@ export function ContactForm() {
 
             <p className="mb-2 mt-1 text-sm font-medium text-slate-700">Pick a slot (times in IST)</p>
             {days.length === 0 ? (
-              <p className="flex items-center gap-2 rounded-lg border border-line bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                <Clock className="h-4 w-4" /> Loading available slots…
+              <p
+                className="flex items-center gap-2 rounded-lg border border-line bg-slate-50 px-3 py-3 text-sm text-slate-500"
+                role="status"
+              >
+                <Clock className="h-4 w-4" aria-hidden="true" /> Loading available slots…
               </p>
             ) : (
               <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-line bg-slate-50/60 p-3">
@@ -184,11 +215,13 @@ export function ContactForm() {
                           key={s.iso}
                           type="button"
                           onClick={() => setSlot(s.iso)}
+                          aria-label={`${day.label}, ${s.time} IST`}
+                          aria-pressed={slot === s.iso}
                           className={cn(
-                            "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                            "rounded-lg border px-3 py-1.5 text-sm font-medium transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 motion-reduce:transform-none motion-reduce:transition-none",
                             slot === s.iso
-                              ? "border-brand-600 bg-brand-600 text-white"
-                              : "border-line bg-white text-slate-600 hover:border-brand-300",
+                              ? "border-brand-600 bg-brand-600 text-white shadow-sm shadow-brand-600/20"
+                              : "border-line bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700",
                           )}
                         >
                           {s.time}
@@ -200,7 +233,7 @@ export function ContactForm() {
               </div>
             )}
             {chosenSlotLabel && (
-              <p className="mt-2 text-sm text-brand-700">
+              <p className="mt-2 text-sm text-brand-700" role="status" aria-live="polite">
                 Selected: <span className="font-semibold">{chosenSlotLabel}</span>
               </p>
             )}
@@ -235,9 +268,12 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        "flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-        active ? "bg-white text-ink shadow-sm" : "text-slate-500 hover:text-ink",
+        "flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-[color,background-color,box-shadow,transform] duration-200 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 motion-reduce:transform-none motion-reduce:transition-none",
+        active
+          ? "bg-white text-ink shadow-sm"
+          : "text-slate-500 hover:bg-white/60 hover:text-ink active:scale-[0.98]",
       )}
     >
       {icon}

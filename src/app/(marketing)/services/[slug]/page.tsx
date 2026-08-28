@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { createElement } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { serviceIcon } from "@/lib/services/icons";
 import { ButtonLink } from "@/components/ui/button";
-import { ArticleBody } from "@/components/marketing/sections";
+import { ArticleBody, DualCta, TechBackdrop } from "@/components/marketing/sections";
 import { Reveal } from "@/components/marketing/reveal";
 
 export const revalidate = 300;
@@ -33,7 +34,6 @@ export default async function ServiceDetailPage({ params }: Params) {
   const service = await getService(slug);
   if (!service) notFound();
 
-  const Icon = serviceIcon(service.icon);
   const others = await prisma.service.findMany({
     where: { status: "published", NOT: { id: service.id } },
     orderBy: { sortOrder: "asc" },
@@ -43,21 +43,35 @@ export default async function ServiceDetailPage({ params }: Params) {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-line bg-hero-grid">
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="animate-float absolute -right-20 top-6 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
-        </div>
-        <div className="mx-auto max-w-4xl px-4 pt-14 pb-14">
-          <Link href="/services" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700">
+      <section className="relative isolate overflow-hidden border-b border-line bg-hero-grid">
+        <TechBackdrop className="-z-10" />
+        <div aria-hidden className="animate-float absolute -left-20 top-6 -z-10 h-72 w-72 rounded-full bg-brand-300/25 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:py-20">
+          <Link
+            href="/services"
+            className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800"
+          >
             <ArrowLeft className="h-4 w-4" /> All services
           </Link>
-          <Reveal className="mt-6 flex items-start gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm">
-              <Icon className="h-7 w-7" />
+          <Reveal className="mt-5 max-w-3xl">
+            <span className="animate-float flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-700 text-white shadow-lg shadow-brand-700/20">
+              {createElement(serviceIcon(service.icon), { className: "h-7 w-7" })}
             </span>
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">{service.title}</h1>
-              {service.tagline && <p className="mt-2 text-lg font-medium text-brand-600">{service.tagline}</p>}
+            <div className="mt-5">
+              <p className="section-kicker">Growth service</p>
+              <h1 className="mt-3 text-[clamp(2.4rem,9vw,4.6rem)] font-extrabold leading-[1.02] tracking-[-0.045em] text-ink">
+                {service.title}
+              </h1>
+              {service.tagline && <p className="mt-4 text-lg font-semibold text-brand-700">{service.tagline}</p>}
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">{service.summary}</p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <ButtonLink href={`/contact?service=${service.slug}`} size="lg" className="w-full rounded-full sm:w-auto">
+                  Request a quote <ArrowRight className="h-4 w-4" />
+                </ButtonLink>
+                <ButtonLink href="/case-studies" variant="secondary" size="lg" className="w-full rounded-full sm:w-auto">
+                  See our work
+                </ButtonLink>
+              </div>
             </div>
           </Reveal>
         </div>
@@ -70,7 +84,7 @@ export default async function ServiceDetailPage({ params }: Params) {
           </Reveal>
 
           <Reveal delay={120} className="md:col-span-1">
-            <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
+            <div className="premium-card rounded-2xl p-6 md:sticky md:top-24">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">What&apos;s included</h2>
               <ul className="mt-4 space-y-2.5">
                 {service.features.map((f) => (
@@ -94,15 +108,14 @@ export default async function ServiceDetailPage({ params }: Params) {
             <h2 className="text-xl font-bold text-ink">Explore more services</h2>
             <div className="mt-6 grid gap-6 sm:grid-cols-3">
               {others.map((o, i) => {
-                const OIcon = serviceIcon(o.icon);
                 return (
                   <Reveal key={o.id} delay={i * 80}>
                     <Link
                       href={`/services/${o.slug}`}
-                      className="group flex h-full flex-col rounded-2xl border border-line bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-brand-200 hover:shadow-lg"
+                      className="premium-card group flex h-full flex-col rounded-2xl p-5"
                     >
                       <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-600 group-hover:text-white">
-                        <OIcon className="h-5 w-5" />
+                        {createElement(serviceIcon(o.icon), { className: "h-5 w-5" })}
                       </span>
                       <h3 className="mt-4 font-semibold text-ink">{o.title}</h3>
                       <p className="mt-1 flex-1 text-sm text-slate-500">{o.summary}</p>
@@ -114,6 +127,12 @@ export default async function ServiceDetailPage({ params }: Params) {
           </div>
         </section>
       )}
+
+      <DualCta
+        title={`Ready to move ${service.title.toLowerCase()} forward?`}
+        description="Tell us where growth is getting stuck. We’ll turn it into a focused plan and polished execution."
+        primary={{ href: `/contact?service=${service.slug}`, label: "Request a quote" }}
+      />
     </>
   );
 }

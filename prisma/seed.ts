@@ -8,6 +8,8 @@ import { TOOLS, CATEGORIES } from "../src/lib/tools/registry";
 import { defaultsFromSchema } from "../src/lib/tools/types";
 import { gstBreakdownInclusive } from "../src/lib/money";
 import { financialYear, addMonths, dayKeyToColumnDate, localDateKey } from "../src/lib/time";
+import { BLOG_LIBRARY } from "./blog-library";
+import { CASE_STUDY_LIBRARY } from "./case-study-library";
 
 const prisma = new PrismaClient();
 const TZ = "Asia/Kolkata";
@@ -204,6 +206,55 @@ async function seedTestimonials() {
   });
 }
 
+// Per-tool reviews shown under each widget's live demo on /tools/[key]. Idempotent
+// alongside the general testimonials above (guarded on tool-scoped rows existing).
+async function seedToolTestimonials() {
+  if ((await prisma.siteTestimonial.count({ where: { toolKey: { not: null } } })) > 0) return;
+  const byTool: Record<string, { authorName: string; authorRole: string; rating: number; body: string }[]> = {
+    reviews: [
+      { authorName: "Priya S.", authorRole: "Owner, Saffron Kitchen", rating: 5, body: "Star ratings from real buyers now sit right on our product pages — average order value climbed within the first month." },
+      { authorName: "Rahul Nair", authorRole: "D2C Founder", rating: 5, body: "Importing reviews took minutes and the layouts look native to our theme. Social proof that actually converts." },
+      { authorName: "Meera J.", authorRole: "Marketing, Urban Roots", rating: 4, body: "Moderation and replies are handy. Would love a couple more layout presets, otherwise excellent." },
+    ],
+    countdown: [
+      { authorName: "Aditya K.", authorRole: "Growth, PixelCart", rating: 5, body: "Our flash-sale countdown created real urgency — checkout completions jumped on sale days." },
+      { authorName: "Sana M.", authorRole: "Founder, Bloom & Co", rating: 5, body: "Set it up for a launch in five minutes. The evergreen per-visitor timer is brilliant." },
+    ],
+    form: [
+      { authorName: "Vikram D.", authorRole: "Ops Lead, TenderLeaf", rating: 5, body: "Every submission lands as a lead in our dashboard. Replaced a paid form tool entirely." },
+      { authorName: "Nisha R.", authorRole: "Studio Craft", rating: 4, body: "Clean builder, good validation. Booking enquiries doubled after we embedded it." },
+    ],
+    whatsapp: [
+      { authorName: "Imran S.", authorRole: "Retailer", rating: 5, body: "The floating WhatsApp button is the best add we made — customers message us before they bounce." },
+      { authorName: "Kavya P.", authorRole: "Boutique owner", rating: 5, body: "Pre-filled messages and business hours make it feel professional. Paid for itself in a week." },
+    ],
+    faq: [
+      { authorName: "Deepak V.", authorRole: "Support Lead", rating: 5, body: "Support tickets dropped noticeably once the FAQ accordion went live on our key pages." },
+      { authorName: "Ananya T.", authorRole: "Founder", rating: 4, body: "Searchable, clean, and easy to update. Exactly what we needed." },
+    ],
+    popup: [
+      { authorName: "Rohan G.", authorRole: "Ecommerce Manager", rating: 5, body: "Email captures via the exit popup grew our list fast without annoying visitors." },
+      { authorName: "Sneha L.", authorRole: "Marketer", rating: 4, body: "Targeting rules are flexible — great for announcements and offers." },
+    ],
+    instagram: [
+      { authorName: "Tara M.", authorRole: "Creator brand", rating: 5, body: "The Instagram feed keeps our homepage fresh automatically and looks gorgeous on mobile." },
+    ],
+    maps: [
+      { authorName: "Harish B.", authorRole: "Café owner", rating: 5, body: "Customers find our store instantly now — directions in one tap, no more 'where are you?' calls." },
+    ],
+    gallery: [
+      { authorName: "Fatima Z.", authorRole: "Photographer", rating: 5, body: "A stunning way to show my portfolio. The lightbox is smooth and fast." },
+    ],
+    slider: [
+      { authorName: "Manish A.", authorRole: "Agency", rating: 4, body: "Perfect for hero banners and client testimonials. Easy to theme to each brand." },
+    ],
+  };
+  const rows = Object.entries(byTool).flatMap(([toolKey, list]) =>
+    list.map((r, i) => ({ ...r, approved: true, featured: false, sortOrder: i, toolKey })),
+  );
+  await prisma.siteTestimonial.createMany({ data: rows });
+}
+
 async function seedContent(staffMap: Map<string, string>) {
   if ((await prisma.contentItem.count()) > 0) return;
   const author = staffMap.get("content") ?? null;
@@ -217,6 +268,50 @@ async function seedContent(staffMap: Map<string, string>) {
       { type: "help_article", title: "Understanding views and your monthly limit", slug: "understanding-views-and-limits", excerpt: "What counts as a view, and what happens if you go over.", body: "A view is counted once per visitor per page load of a published widget, after excluding bots and duplicates within 30 minutes...", status: "published", authorStaffId: author, publishedAt: now },
     ],
   });
+}
+
+async function seedBlogLibrary(staffMap: Map<string, string>) {
+  const authorStaffId = staffMap.get("content") ?? null;
+
+  for (const post of BLOG_LIBRARY) {
+    await prisma.contentItem.upsert({
+      where: { slug: post.slug },
+      update: {},
+      create: {
+        type: "blog",
+        title: post.title,
+        slug: post.slug,
+        excerpt: post.excerpt,
+        body: post.body,
+        coverImage: post.coverImage,
+        status: "published",
+        authorStaffId,
+        publishedAt: new Date(post.publishedAt),
+      },
+    });
+  }
+}
+
+async function seedCaseStudyLibrary(staffMap: Map<string, string>) {
+  const authorStaffId = staffMap.get("content") ?? null;
+
+  for (const study of CASE_STUDY_LIBRARY) {
+    await prisma.contentItem.upsert({
+      where: { slug: study.slug },
+      update: {},
+      create: {
+        type: "case_study",
+        title: study.title,
+        slug: study.slug,
+        excerpt: study.excerpt,
+        body: study.body,
+        coverImage: study.coverImage,
+        status: "published",
+        authorStaffId,
+        publishedAt: new Date(study.publishedAt),
+      },
+    });
+  }
 }
 
 async function seedDemoCustomer(planMap: Map<string, string>, toolMap: Map<string, string>) {
@@ -422,7 +517,10 @@ async function main() {
   await seedIncentives();
   console.log("  incentive program: referral + 2 coupons");
   await seedTestimonials();
+  await seedToolTestimonials();
   await seedContent(staffMap);
+  await seedBlogLibrary(staffMap);
+  await seedCaseStudyLibrary(staffMap);
   console.log("  marketing content + testimonials");
   await seedServices();
   console.log("  agency services: 8");

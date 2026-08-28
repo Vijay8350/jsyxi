@@ -738,6 +738,21 @@ model ContentItem {
   @@index([type, status])
 }
 
+// Binary store for admin-uploaded images (content cover images + inline article
+// images). Stored in-DB so it survives standalone rebuilds with no filesystem/CDN
+// wiring; served (public, immutable) via /api/media/[id]. Keep uploads small.
+model MediaAsset {
+  id               String   @id @default(cuid())
+  data             Bytes
+  contentType      String
+  filename         String?
+  bytes            Int
+  createdByStaffId String?
+  createdAt        DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([createdAt])
+}
+
 // Agency service offerings shown on the marketing site (admin-managed, dynamic).
 model Service {
   id          String        @id @default(cuid())
@@ -769,7 +784,10 @@ model SiteTestimonial {
   approved    Boolean  @default(false)
   featured    Boolean  @default(false)
   sortOrder   Int      @default(0)
+  toolKey     String? // null = general/site-wide; otherwise scopes the review to a Tool's landing page
   createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([toolKey])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

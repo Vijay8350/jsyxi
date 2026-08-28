@@ -1116,6 +1116,788 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
       return { mode: "block", html, css };
     }
 
+    // ── Pricing Table ──────────────────────────────────────────────────────────
+    case "pricing": {
+      const plans = arr(config.plans);
+      const accent = col(config.accentColor, "#0d9488");
+      const rounded = bool(config.rounded, true);
+      const cards = plans
+        .map((p) => {
+          const feats = String(p.features ?? "")
+            .split("\n").map((f) => f.trim()).filter(Boolean)
+            .map((f) => `<li>${esc(f)}</li>`).join("");
+          const featured = bool(p.featured, false);
+          return `<div class="jw-plan${featured ? " jw-featured" : ""}">
+            ${featured ? `<span class="jw-badge">Popular</span>` : ""}
+            <h4 class="jw-plan-name">${esc(p.name)}</h4>
+            <div class="jw-price"><span class="jw-amt">${esc(p.price)}</span><span class="jw-per">${esc(p.period)}</span></div>
+            <ul class="jw-feats">${feats}</ul>
+            <a class="jw-cta" href="${safeUrl(p.url)}" target="_blank" rel="noopener">${esc(p.cta)}</a>
+          </div>`;
+        })
+        .join("");
+      const html = `<div class="jw jw-pricing">
+        ${bool(config.showHeading, true) ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-plans">${cards}</div>
+        ${brand}
+      </div>`;
+      const cnt = Math.min(Math.max(1, plans.length), 3);
+      const css = `
+        ${r} .jw-pricing{font-family:inherit}
+        ${r} .jw-heading{font-size:24px;font-weight:700;text-align:center;margin:0 0 22px;color:#0f172a}
+        ${r} .jw-plans{display:grid;grid-template-columns:repeat(${cnt},1fr);gap:16px}
+        @media(max-width:640px){${r} .jw-plans{grid-template-columns:1fr}}
+        ${r} .jw-plan{position:relative;background:#fff;border:1px solid #e5e7eb;border-radius:${rounded ? "16px" : "4px"};padding:24px;display:flex;flex-direction:column}
+        ${r} .jw-featured{border-color:${accent};box-shadow:0 12px 30px -12px ${accent}77}
+        ${r} .jw-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:${accent};color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+        ${r} .jw-plan-name{font-size:16px;font-weight:600;color:#334155;margin:0 0 8px}
+        ${r} .jw-price{display:flex;align-items:baseline;gap:3px;margin-bottom:16px}
+        ${r} .jw-amt{font-size:34px;font-weight:800;color:#0f172a}
+        ${r} .jw-per{color:#94a3b8;font-size:14px}
+        ${r} .jw-feats{list-style:none;padding:0;margin:0 0 20px;flex:1}
+        ${r} .jw-feats li{padding:7px 0 7px 26px;position:relative;color:#475569;font-size:14px;border-bottom:1px solid #f1f5f9}
+        ${r} .jw-feats li:before{content:"✓";position:absolute;left:0;color:${accent};font-weight:700}
+        ${r} .jw-cta{display:block;text-align:center;background:${accent};color:#fff;text-decoration:none;padding:11px;border-radius:${rounded ? "10px" : "4px"};font-weight:600;transition:opacity .2s}
+        ${r} .jw-cta:hover{opacity:.9}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Announcement Bar ───────────────────────────────────────────────────────
+    case "announcement": {
+      const bg = col(config.bgColor, "#0d9488");
+      const fg = col(config.textColor, "#ffffff");
+      const pos = String(config.position ?? "top") === "bottom" ? "bottom" : "top";
+      const dismissible = bool(config.dismissible, true);
+      const link =
+        config.linkUrl && config.linkLabel
+          ? `<a class="jw-abar-link" href="${safeUrl(config.linkUrl)}" target="_blank" rel="noopener">${esc(config.linkLabel)}</a>`
+          : "";
+      const html = `<div class="jw jw-abar" data-pos="${pos}" style="background:${bg};color:${fg}">
+        <div class="jw-abar-in">
+          <span class="jw-abar-text">${esc(config.text)}</span>
+          ${link}
+        </div>
+        ${dismissible ? `<button class="jw-abar-x" aria-label="Dismiss">&times;</button>` : ""}
+      </div>`;
+      const css = `
+        ${r} .jw-abar{font-family:inherit;position:fixed;left:0;right:0;${pos}:0;z-index:2147482000;display:flex;align-items:center;justify-content:center;gap:14px;padding:11px 44px;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+        ${r} .jw-abar-in{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+        ${r} .jw-abar-link{color:inherit;font-weight:700;text-decoration:underline;white-space:nowrap}
+        ${r} .jw-abar-x{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:inherit;font-size:24px;line-height:1;cursor:pointer;opacity:.85}
+        ${r} .jw-abar-x:hover{opacity:1}`;
+      return { mode: "overlay", html, css };
+    }
+
+    // ── Social Media Icons ─────────────────────────────────────────────────────
+    case "socialicons": {
+      const links = arr(config.links);
+      const shape = String(config.shape ?? "circle");
+      const size = Math.max(28, Math.min(72, num(config.size, 44)));
+      const align = String(config.align ?? "center");
+      const mono = String(config.colorStyle ?? "brand") === "mono";
+      const monoColor = col(config.monoColor, "#0f172a");
+      const NET: Record<string, { c: string; p: string }> = {
+        facebook: { c: "#1877f2", p: "M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z" },
+        instagram: { c: "#e4405f", p: "M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 4 4 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2zm0 3.2A6.6 6.6 0 1 0 12 18.6 6.6 6.6 0 0 0 12 5.4zm0 10.9A4.3 4.3 0 1 1 12 7.7a4.3 4.3 0 0 1 0 8.6zm6.8-11.2a1.5 1.5 0 1 1-1.5-1.5 1.5 1.5 0 0 1 1.5 1.5z" },
+        twitter: { c: "#000000", p: "M18.9 2H22l-7.3 8.3L23 22h-6.6l-5.2-6.8L5.3 22H2.2l7.8-8.9L1.5 2h6.8l4.7 6.2zm-1.2 18h1.8L7.1 3.8H5.2z" },
+        linkedin: { c: "#0a66c2", p: "M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM8.3 18.3H5.7V10h2.6zM7 8.8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm11.3 9.5h-2.6v-4.2c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.3h-2.6V10h2.5v1.1h.1a2.8 2.8 0 0 1 2.5-1.4c2.7 0 3.2 1.8 3.2 4z" },
+        youtube: { c: "#ff0000", p: "M23 7.5a3 3 0 0 0-2.1-2.1C19 4.8 12 4.8 12 4.8s-7 0-8.9.6A3 3 0 0 0 1 7.5 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.5a3 3 0 0 0 2.1 2.1c1.9.6 8.9.6 8.9.6s7 0 8.9-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 23.5 12 31 31 0 0 0 23 7.5zM9.8 15.3V8.7l5.7 3.3z" },
+        whatsapp: { c: "#25d366", p: "M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2a.4.4 0 0 0 0-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3A2.8 2.8 0 0 0 6.4 10a4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2 .8 2 .5 2.4.5a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z" },
+        telegram: { c: "#26a5e4", p: "M22 4.5 2.5 12c-.9.4-.9 1.6 0 1.9l4.9 1.5 1.9 5.7c.3.8 1.2 1 1.8.4l2.7-2.5 4.8 3.5c.7.5 1.7.1 1.9-.7L23 5.7c.2-.9-.6-1.6-1-1.2zM9.5 14.3l8-5-6.5 6-.3 3.6z" },
+        tiktok: { c: "#000000", p: "M16.5 2h-3v13.3a2.7 2.7 0 1 1-2.2-2.7v-3a5.7 5.7 0 1 0 5.2 5.7V9.2a7 7 0 0 0 4 1.3v-3a4 4 0 0 1-4-4z" },
+        pinterest: { c: "#e60023", p: "M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5.1s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.6 1.3 1.4 0 .9-.5 2.1-.8 3.3-.2.9.5 1.7 1.4 1.7 1.7 0 2.9-2.2 2.9-4.8 0-2-1.3-3.4-3.8-3.4a4.3 4.3 0 0 0-4.5 4.3c0 .8.3 1.4.6 1.8.1.2.2.3.1.5l-.2.9c-.1.3-.3.4-.6.2-1.1-.5-1.7-1.9-1.7-3.5C5.5 8.3 7.6 6 11.6 6c3.3 0 5.6 2.4 5.6 5.2 0 3.3-1.9 5.8-4.6 5.8-.9 0-1.8-.5-2.1-1l-.6 2.2c-.2.8-.7 1.7-1 2.3A10 10 0 1 0 12 2z" },
+        email: { c: "#0d9488", p: "M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z" },
+      };
+      const icons = links
+        .map((l) => {
+          const net = String(l.network ?? "").toLowerCase();
+          const def = NET[net] || NET.email;
+          const color = mono ? monoColor : def.c;
+          return `<a class="jw-si" href="${safeUrl(l.url)}" target="_blank" rel="noopener" aria-label="${esc(net)}" style="background:${color}"><svg viewBox="0 0 24 24" fill="#fff" width="55%" height="55%"><path d="${def.p}"/></svg></a>`;
+        })
+        .join("");
+      const html = `<div class="jw jw-socialicons" style="text-align:${align}">
+        ${bool(config.showHeading, true) && config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-si-row">${icons}</div>
+        ${brand}
+      </div>`;
+      const radius = shape === "square" ? "12px" : "50%";
+      const css = `
+        ${r} .jw-socialicons{font-family:inherit}
+        ${r} .jw-heading{font-size:18px;font-weight:600;margin:0 0 12px;color:#0f172a}
+        ${r} .jw-si-row{display:inline-flex;flex-wrap:wrap;gap:10px}
+        ${r} .jw-si{width:${size}px;height:${size}px;border-radius:${radius};display:inline-flex;align-items:center;justify-content:center;transition:transform .15s,filter .15s}
+        ${r} .jw-si:hover{transform:translateY(-3px);filter:brightness(1.08)}
+        ${r} .jw-brand{margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Feature Grid ───────────────────────────────────────────────────────────
+    case "features": {
+      const items = arr(config.items);
+      const cols = Math.max(1, Math.min(4, num(config.columns, 3)));
+      const align = String(config.align ?? "center");
+      const accent = col(config.accentColor, "#ccfbf1");
+      const cards = items
+        .map(
+          (it) => `<div class="jw-feat">
+          <span class="jw-feat-ic" style="background:${accent}">${esc(it.icon)}</span>
+          <h4>${esc(it.title)}</h4>
+          <p>${esc(it.text)}</p>
+        </div>`,
+        )
+        .join("");
+      const html = `<div class="jw jw-features" style="text-align:${align}">
+        ${bool(config.showHeading, true) ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-feat-grid">${cards}</div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-features{font-family:inherit}
+        ${r} .jw-heading{font-size:24px;font-weight:700;text-align:center;margin:0 0 24px;color:#0f172a}
+        ${r} .jw-feat-grid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:18px}
+        @media(max-width:640px){${r} .jw-feat-grid{grid-template-columns:1fr}}
+        ${r} .jw-feat{padding:20px}
+        ${r} .jw-feat-ic{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;font-size:26px;margin-bottom:12px}
+        ${r} .jw-feat h4{margin:0 0 6px;font-size:17px;font-weight:600;color:#0f172a}
+        ${r} .jw-feat p{margin:0;color:#64748b;font-size:14px;line-height:1.55}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Tabs ───────────────────────────────────────────────────────────────────
+    case "tabs": {
+      const items = arr(config.items);
+      const align = String(config.align ?? "left");
+      const accent = col(config.accentColor, "#0d9488");
+      const rounded = bool(config.rounded, true);
+      const btns = items.map((it, i) => `<button class="jw-tab${i === 0 ? " jw-on" : ""}" data-i="${i}">${esc(it.title)}</button>`).join("");
+      const panes = items.map((it, i) => `<div class="jw-pane${i === 0 ? " jw-on" : ""}" data-i="${i}">${esc(it.body)}</div>`).join("");
+      const html = `<div class="jw jw-tabs">
+        <div class="jw-tabbar" style="justify-content:${align === "center" ? "center" : "flex-start"}">${btns}</div>
+        <div class="jw-panes">${panes}</div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-tabs{font-family:inherit}
+        ${r} .jw-tabbar{display:flex;flex-wrap:wrap;gap:4px;border-bottom:2px solid #e5e7eb;margin-bottom:16px}
+        ${r} .jw-tab{background:transparent;border:0;border-bottom:2px solid transparent;margin-bottom:-2px;padding:10px 16px;font-size:15px;font-weight:600;color:#64748b;cursor:pointer;border-radius:${rounded ? "8px 8px 0 0" : "0"}}
+        ${r} .jw-tab:hover{color:#0f172a}
+        ${r} .jw-tab.jw-on{color:${accent};border-bottom-color:${accent}}
+        ${r} .jw-pane{display:none;color:#475569;font-size:15px;line-height:1.6;white-space:pre-line}
+        ${r} .jw-pane.jw-on{display:block}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Video Popup ────────────────────────────────────────────────────────────
+    case "video": {
+      const url = String(config.videoUrl ?? "");
+      const ytm = url.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
+      const vim = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+      let embed = "";
+      let thumb = String(config.thumbnail ?? "");
+      if (ytm) { embed = `https://www.youtube.com/embed/${ytm[1]}`; if (!thumb) thumb = `https://img.youtube.com/vi/${ytm[1]}/hqdefault.jpg`; }
+      else if (vim) { embed = `https://player.vimeo.com/video/${vim[1]}`; }
+      const mode = String(config.mode ?? "popup");
+      const ratio = String(config.ratio ?? "16:9");
+      const pad = ratio === "1:1" ? "100%" : ratio === "4:3" ? "75%" : "56.25%";
+      const accent = col(config.accentColor, "#0d9488");
+      const rad = bool(config.rounded, true) ? "16px" : "4px";
+      const title = bool(config.showTitle, true) && config.title ? `<h3 class="jw-heading">${esc(config.title)}</h3>` : "";
+      let html: string;
+      if (mode === "inline") {
+        html = `<div class="jw jw-video">
+          ${title}
+          <div class="jw-vframe">${embed ? `<iframe src="${esc(embed)}" title="${esc(config.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>` : `<div class="jw-vempty">Add a YouTube or Vimeo URL</div>`}</div>
+          ${brand}
+        </div>`;
+      } else {
+        html = `<div class="jw jw-video">
+          ${title}
+          <button class="jw-vthumb" data-embed="${esc(embed)}"${thumb ? ` style="background-image:url('${safeUrl(thumb)}')"` : ""}><span class="jw-vplay" aria-label="Play video"></span></button>
+          <div class="jw-vmodal" hidden><div class="jw-vmodal-bd"><button class="jw-vclose" aria-label="Close">&times;</button><div class="jw-vframe"><iframe title="${esc(config.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div></div></div>
+          ${brand}
+        </div>`;
+      }
+      const css = `
+        ${r} .jw-video{font-family:inherit}
+        ${r} .jw-heading{font-size:22px;font-weight:700;margin:0 0 14px;text-align:center;color:#0f172a}
+        ${r} .jw-vframe{position:relative;width:100%;padding-top:${pad};border-radius:${rad};overflow:hidden;background:#000}
+        ${r} .jw-vframe iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+        ${r} .jw-vempty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#94a3b8;background:#f1f5f9;font-size:14px}
+        ${r} .jw-vthumb{position:relative;display:block;width:100%;padding-top:${pad};border:0;border-radius:${rad};overflow:hidden;cursor:pointer;background:#0f172a center/cover no-repeat}
+        ${r} .jw-vplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;background:${accent};box-shadow:0 8px 30px rgba(0,0,0,.35);transition:transform .15s}
+        ${r} .jw-vplay:before{content:"";position:absolute;top:50%;left:54%;transform:translate(-50%,-50%);border-style:solid;border-width:12px 0 12px 20px;border-color:transparent transparent transparent #fff}
+        ${r} .jw-vthumb:hover .jw-vplay{transform:translate(-50%,-50%) scale(1.08)}
+        ${r} .jw-vmodal{position:fixed;inset:0;z-index:2147482000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.8);padding:20px}
+        ${r} .jw-vmodal[hidden]{display:none}
+        ${r} .jw-vmodal-bd{position:relative;width:100%;max-width:900px}
+        ${r} .jw-vclose{position:absolute;top:-40px;right:0;background:transparent;border:0;color:#fff;font-size:34px;line-height:1;cursor:pointer}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Coupon Code ────────────────────────────────────────────────────────────
+    case "coupon": {
+      const accent = col(config.accentColor, "#0d9488");
+      const bg = col(config.bgColor, "#f0fdfa");
+      const rad = bool(config.rounded, true) ? "16px" : "4px";
+      const html = `<div class="jw jw-coupon" style="background:${bg};border-color:${accent}33">
+        <h3 class="jw-cp-h">${esc(config.heading)}</h3>
+        ${config.description ? `<p class="jw-cp-d">${esc(config.description)}</p>` : ""}
+        <div class="jw-cp-box">
+          <span class="jw-cp-code">${esc(config.code)}</span>
+          <button class="jw-cp-btn" data-code="${esc(config.code)}" data-done="${esc(config.successLabel)}">${esc(config.copyLabel)}</button>
+        </div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-coupon{font-family:inherit;text-align:center;padding:28px;border-radius:${rad};border:1px solid}
+        ${r} .jw-cp-h{font-size:22px;font-weight:700;margin:0 0 6px;color:#0f172a}
+        ${r} .jw-cp-d{margin:0 0 18px;color:#475569;font-size:14px}
+        ${r} .jw-cp-box{display:inline-flex;align-items:stretch;border:2px dashed ${accent};border-radius:12px;overflow:hidden;background:#fff}
+        ${r} .jw-cp-code{display:flex;align-items:center;padding:12px 20px;font-size:20px;font-weight:800;letter-spacing:2px;color:#0f172a}
+        ${r} .jw-cp-btn{border:0;background:${accent};color:#fff;padding:0 22px;font-weight:700;cursor:pointer;font-size:14px;transition:opacity .2s}
+        ${r} .jw-cp-btn:hover{opacity:.9}
+        ${r} .jw-brand{margin-top:16px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Stats Counter ──────────────────────────────────────────────────────────
+    case "stats": {
+      const items = arr(config.items);
+      const cols = Math.max(1, Math.min(4, num(config.columns, 4)));
+      const accent = col(config.accentColor, "#0d9488");
+      const animate = bool(config.animate, true);
+      const tiles = items
+        .map((it) => {
+          const v = num(it.value, 0);
+          return `<div class="jw-stat">
+            <div class="jw-stat-n" data-target="${v}" data-animate="${animate ? "1" : "0"}" style="color:${accent}"><span>${esc(it.prefix)}</span><span class="jw-stat-v">${animate ? "0" : esc(String(v))}</span><span>${esc(it.suffix)}</span></div>
+            <div class="jw-stat-l">${esc(it.label)}</div>
+          </div>`;
+        })
+        .join("");
+      const html = `<div class="jw jw-stats">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-stat-grid">${tiles}</div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-stats{font-family:inherit}
+        ${r} .jw-heading{font-size:24px;font-weight:700;text-align:center;margin:0 0 22px;color:#0f172a}
+        ${r} .jw-stat-grid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:18px;text-align:center}
+        @media(max-width:640px){${r} .jw-stat-grid{grid-template-columns:repeat(2,1fr)}}
+        ${r} .jw-stat-n{font-size:40px;font-weight:800;line-height:1;display:flex;align-items:baseline;justify-content:center;gap:1px}
+        ${r} .jw-stat-l{margin-top:8px;color:#64748b;font-size:14px;font-weight:500}
+        ${r} .jw-brand{text-align:center;margin-top:16px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Reading Progress Bar ─────────────────────────────────────────────────────
+    case "progressbar": {
+      const pos = String(config.position ?? "top") === "bottom" ? "bottom" : "top";
+      const barColor = col(config.color, "#0d9488");
+      const track = bool(config.showTrack, false) ? col(config.trackColor, "#e5e7eb") : "transparent";
+      const h = Math.max(2, Math.min(16, num(config.height, 5)));
+      const html = `<div class="jw jw-progress" style="background:${track};height:${h}px;${pos}:0">
+        <div class="jw-progress-fill" style="background:${barColor}"></div>
+      </div>`;
+      const css = `
+        ${r} .jw-progress{position:fixed;left:0;right:0;z-index:2147482000}
+        ${r} .jw-progress-fill{height:100%;width:0;transition:width .1s linear}`;
+      return { mode: "overlay", html, css };
+    }
+
+    // ── Marquee Ticker ───────────────────────────────────────────────────────────
+    case "marquee": {
+      const items = arr(config.items);
+      const speed = Math.max(5, Math.min(120, num(config.speed, 20)));
+      const dir = String(config.direction ?? "left") === "right" ? "reverse" : "normal";
+      const bg = col(config.bgColor, "#0f172a");
+      const fg = col(config.textColor, "#ffffff");
+      const fs = Math.max(11, Math.min(28, num(config.fontSize, 15)));
+      const pause = bool(config.pauseOnHover, true);
+      const one = items.map((it) => `<span class="jw-mq-item">${esc(it.text)}</span>`).join("");
+      const html = `<div class="jw jw-marquee" style="background:${bg};color:${fg};font-size:${fs}px"><div class="jw-mq-track">${one}${one}</div></div>`;
+      const css = `
+        ${r} .jw-marquee{font-family:inherit;overflow:hidden;white-space:nowrap;padding:11px 0}
+        ${r} .jw-mq-track{display:inline-flex;align-items:center;animation:jw-mq ${speed}s linear infinite;animation-direction:${dir}}
+        ${r} .jw-marquee:hover .jw-mq-track{animation-play-state:${pause ? "paused" : "running"}}
+        ${r} .jw-mq-item{padding:0 14px;font-weight:600}
+        ${r} .jw-mq-item:after{content:"•";padding-left:28px;opacity:.45}
+        @keyframes jw-mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Testimonial Slider ─────────────────────────────────────────────────────
+    case "testimonialslider": {
+      const items = arr(config.items);
+      const accent = col(config.accentColor, "#0d9488");
+      const cardBg = col(config.cardBackground, "#ffffff");
+      const autoplay = bool(config.autoplay, true);
+      const interval = Math.max(2, Math.min(30, num(config.interval, 5)));
+      const slides = items
+        .map(
+          (it, i) => `<figure class="jw-ts-slide${i === 0 ? " jw-on" : ""}" data-i="${i}" style="background:${cardBg}">
+          <div class="jw-ts-stars">${stars(num(it.rating, 5), accent)}</div>
+          <blockquote>${esc(it.quote)}</blockquote>
+          <figcaption>
+            ${it.avatar ? `<img src="${safeUrl(it.avatar)}" alt="" class="jw-ts-av"/>` : `<span class="jw-ts-av jw-ts-ph">${esc(String(it.author ?? "?").charAt(0))}</span>`}
+            <span><b>${esc(it.author)}</b>${it.role ? `<em>${esc(it.role)}</em>` : ""}</span>
+          </figcaption>
+        </figure>`,
+        )
+        .join("");
+      const dots = items.map((_, i) => `<button class="jw-ts-dot${i === 0 ? " jw-on" : ""}" data-i="${i}" aria-label="Go to slide ${i + 1}"></button>`).join("");
+      const html = `<div class="jw jw-tslider" data-autoplay="${autoplay ? "1" : "0"}" data-interval="${interval * 1000}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-ts-stage">
+          <button class="jw-ts-nav jw-ts-prev" aria-label="Previous">&#8249;</button>
+          <div class="jw-ts-slides">${slides}</div>
+          <button class="jw-ts-nav jw-ts-next" aria-label="Next">&#8250;</button>
+        </div>
+        <div class="jw-ts-dots">${dots}</div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-tslider{font-family:inherit;max-width:640px;margin:0 auto}
+        ${r} .jw-heading{font-size:24px;font-weight:700;text-align:center;margin:0 0 20px;color:#0f172a}
+        ${r} .jw-ts-stage{position:relative;display:flex;align-items:center;gap:8px}
+        ${r} .jw-ts-slides{position:relative;flex:1;min-height:210px}
+        ${r} .jw-ts-slide{display:none;margin:0;border:1px solid #e5e7eb;border-radius:16px;padding:28px;text-align:center}
+        ${r} .jw-ts-slide.jw-on{display:block;animation:jw-ts-fade .5s ease}
+        @keyframes jw-ts-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+        ${r} .jw-ts-stars{font-size:18px;letter-spacing:2px;margin-bottom:12px}
+        ${r} .jw-ts-slide blockquote{margin:0 0 18px;font-size:17px;line-height:1.6;color:#334155}
+        ${r} .jw-ts-slide figcaption{display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px}
+        ${r} .jw-ts-slide figcaption em{display:block;color:#94a3b8;font-style:normal;font-size:12px;text-align:left}
+        ${r} .jw-ts-av{width:42px;height:42px;border-radius:50%;object-fit:cover}
+        ${r} .jw-ts-ph{display:flex;align-items:center;justify-content:center;background:${accent}22;color:${accent};font-weight:700}
+        ${r} .jw-ts-nav{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;color:#334155;font-size:20px;cursor:pointer;line-height:1}
+        ${r} .jw-ts-nav:hover{border-color:${accent};color:${accent}}
+        ${r} .jw-ts-dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
+        ${r} .jw-ts-dot{width:9px;height:9px;border-radius:50%;border:0;background:#cbd5e1;cursor:pointer;padding:0;transition:width .2s}
+        ${r} .jw-ts-dot.jw-on{background:${accent};width:22px;border-radius:5px}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Typing Effect ──────────────────────────────────────────────────────────
+    case "typewriter": {
+      const prefix = esc(config.prefix);
+      const phrases = arr(config.phrases).map((p) => String(p.text ?? "")).filter(Boolean);
+      const align = String(config.align ?? "center");
+      const fs = Math.max(16, Math.min(72, num(config.fontSize, 34)));
+      const textColor = col(config.textColor, "#0f172a");
+      const accent = col(config.accentColor, "#0d9488");
+      const data = phrases.map((p) => esc(p)).join("|");
+      const html = `<div class="jw jw-tw" style="text-align:${align}">
+        <h2 class="jw-tw-h" style="font-size:${fs}px;color:${textColor}">${prefix}<span class="jw-tw-dyn" data-words="${data}" style="color:${accent}">${esc(phrases[0] ?? "")}</span><span class="jw-tw-cursor" style="background:${accent}"></span></h2>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-tw{font-family:inherit}
+        ${r} .jw-tw-h{font-weight:800;line-height:1.2;margin:0}
+        ${r} .jw-tw-dyn{font-weight:800}
+        ${r} .jw-tw-cursor{display:inline-block;width:3px;height:1em;margin-left:2px;vertical-align:-2px;animation:jw-tw-blink 1s step-end infinite}
+        @keyframes jw-tw-blink{50%{opacity:0}}
+        ${r} .jw-brand{margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Flip Cards ─────────────────────────────────────────────────────────────
+    case "flipcard": {
+      const items = arr(config.items);
+      const cols = Math.max(1, Math.min(4, num(config.columns, 3)));
+      const trigger = String(config.trigger ?? "hover");
+      const frontBg = col(config.frontColor, "#0d9488");
+      const backBg = col(config.backColor, "#0f172a");
+      const cards = items
+        .map(
+          (it) => `<div class="jw-fc" tabindex="0">
+          <div class="jw-fc-inner">
+            <div class="jw-fc-face jw-fc-front" style="background:${frontBg}"><span class="jw-fc-ic">${esc(it.icon)}</span><h4>${esc(it.front)}</h4></div>
+            <div class="jw-fc-face jw-fc-back" style="background:${backBg}"><p>${esc(it.back)}</p></div>
+          </div>
+        </div>`,
+        )
+        .join("");
+      const html = `<div class="jw jw-flipcard" data-trigger="${trigger}"><div class="jw-fc-grid">${cards}</div>${brand}</div>`;
+      const flipRule =
+        trigger === "hover"
+          ? `${r} .jw-fc:hover .jw-fc-inner,${r} .jw-fc:focus .jw-fc-inner{transform:rotateY(180deg)}`
+          : `${r} .jw-fc.jw-flipped .jw-fc-inner{transform:rotateY(180deg)}`;
+      const css = `
+        ${r} .jw-flipcard{font-family:inherit}
+        ${r} .jw-fc-grid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:16px}
+        @media(max-width:640px){${r} .jw-fc-grid{grid-template-columns:1fr}}
+        ${r} .jw-fc{perspective:1000px;min-height:200px;cursor:pointer;outline:none}
+        ${r} .jw-fc-inner{position:relative;width:100%;height:100%;min-height:200px;transition:transform .6s;transform-style:preserve-3d}
+        ${flipRule}
+        ${r} .jw-fc-face{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff}
+        ${r} .jw-fc-front .jw-fc-ic{font-size:36px;margin-bottom:10px}
+        ${r} .jw-fc-front h4{margin:0;font-size:19px;font-weight:700}
+        ${r} .jw-fc-back{transform:rotateY(180deg)}
+        ${r} .jw-fc-back p{margin:0;font-size:15px;line-height:1.55;opacity:.95}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Promo Banner ───────────────────────────────────────────────────────────
+    case "banner": {
+      const bg = col(config.bgColor, "#0d9488");
+      const fg = col(config.textColor, "#ffffff");
+      const btnC = col(config.buttonColor, "#ffffff");
+      const align = String(config.align ?? "center");
+      const rounded = bool(config.rounded, true);
+      const bgImg = String(config.bgImage ?? "");
+      const style = bgImg ? `background:linear-gradient(${bg}cc,${bg}cc),url('${safeUrl(bgImg)}') center/cover` : `background:${bg}`;
+      const html = `<div class="jw jw-banner" style="${style};color:${fg};text-align:${align};border-radius:${rounded ? "20px" : "0"}">
+        <div class="jw-banner-in">
+          <h2 class="jw-banner-h">${esc(config.heading)}</h2>
+          ${config.subtext ? `<p class="jw-banner-s">${esc(config.subtext)}</p>` : ""}
+          ${config.ctaLabel ? `<a class="jw-banner-cta" href="${safeUrl(config.ctaUrl)}" target="_blank" rel="noopener" style="background:${btnC};color:${bg}">${esc(config.ctaLabel)}</a>` : ""}
+        </div>
+      </div>`;
+      const css = `
+        ${r} .jw-banner{font-family:inherit;padding:48px 32px;overflow:hidden}
+        ${r} .jw-banner-in{max-width:640px;margin:${align === "center" ? "0 auto" : "0"}}
+        ${r} .jw-banner-h{font-size:30px;font-weight:800;margin:0 0 10px;line-height:1.2}
+        ${r} .jw-banner-s{font-size:16px;margin:0 0 22px;opacity:.92;line-height:1.55}
+        ${r} .jw-banner-cta{display:inline-block;padding:13px 28px;border-radius:999px;font-weight:700;text-decoration:none;transition:transform .15s,box-shadow .15s}
+        ${r} .jw-banner-cta:hover{transform:translateY(-2px);box-shadow:0 12px 26px -8px rgba(0,0,0,.4)}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Comparison Table ───────────────────────────────────────────────────────
+    case "comparison": {
+      const accent = col(config.accentColor, "#0d9488");
+      const heads = [String(config.col1 ?? ""), String(config.col2 ?? ""), String(config.col3 ?? "")];
+      const hi = Math.max(0, Math.min(3, num(config.highlight, 2)));
+      const rows = arr(config.rows);
+      const cell = (v: unknown) => {
+        const s = String(v ?? "").trim().toLowerCase();
+        if (s === "yes" || s === "true" || s === "✓" || s === "y") return `<span class="jw-cmp-yes" style="color:${accent}">✓</span>`;
+        if (s === "no" || s === "false" || s === "✗" || s === "x" || s === "-") return `<span class="jw-cmp-no">✗</span>`;
+        return esc(v);
+      };
+      const headCells = heads.map((h, i) => `<th class="${hi === i + 1 ? "jw-cmp-hi" : ""}">${esc(h)}</th>`).join("");
+      const bodyRows = rows
+        .map(
+          (row) => `<tr>
+          <td class="jw-cmp-feat">${esc(row.feature)}</td>
+          <td class="${hi === 1 ? "jw-cmp-hi" : ""}">${cell(row.v1)}</td>
+          <td class="${hi === 2 ? "jw-cmp-hi" : ""}">${cell(row.v2)}</td>
+          <td class="${hi === 3 ? "jw-cmp-hi" : ""}">${cell(row.v3)}</td>
+        </tr>`,
+        )
+        .join("");
+      const html = `<div class="jw jw-cmp">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-cmp-wrap"><table>
+          <thead><tr><th></th>${headCells}</tr></thead>
+          <tbody>${bodyRows}</tbody>
+        </table></div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-cmp{font-family:inherit}
+        ${r} .jw-heading{font-size:24px;font-weight:700;text-align:center;margin:0 0 20px;color:#0f172a}
+        ${r} .jw-cmp-wrap{overflow-x:auto}
+        ${r} .jw-cmp table{width:100%;border-collapse:collapse;min-width:480px}
+        ${r} .jw-cmp th,${r} .jw-cmp td{padding:13px 16px;text-align:center;border-bottom:1px solid #eef2f6;font-size:14px}
+        ${r} .jw-cmp thead th{font-weight:700;color:#0f172a;font-size:15px}
+        ${r} .jw-cmp .jw-cmp-feat{text-align:left;color:#334155;font-weight:500}
+        ${r} .jw-cmp .jw-cmp-hi{background:${accent}0d}
+        ${r} .jw-cmp thead .jw-cmp-hi{border-top:3px solid ${accent}}
+        ${r} .jw-cmp-yes{font-weight:800;font-size:17px}
+        ${r} .jw-cmp-no{color:#cbd5e1;font-weight:700;font-size:15px}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Share Buttons ──────────────────────────────────────────────────────────
+    case "socialshare": {
+      const nets = arr(config.networks);
+      const shape = String(config.shape ?? "circle");
+      const size = Math.max(28, Math.min(64, num(config.size, 44)));
+      const align = String(config.align ?? "left");
+      const mono = String(config.colorStyle ?? "brand") === "mono";
+      const monoColor = col(config.monoColor, "#0f172a");
+      const shareUrl = String(config.shareUrl ?? "");
+      const shareText = String(config.shareText ?? "");
+      const NET: Record<string, { c: string; p: string }> = {
+        facebook: { c: "#1877f2", p: "M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z" },
+        twitter: { c: "#000000", p: "M18.9 2H22l-7.3 8.3L23 22h-6.6l-5.2-6.8L5.3 22H2.2l7.8-8.9L1.5 2h6.8l4.7 6.2zm-1.2 18h1.8L7.1 3.8H5.2z" },
+        linkedin: { c: "#0a66c2", p: "M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM8.3 18.3H5.7V10h2.6zM7 8.8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm11.3 9.5h-2.6v-4.2c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.3h-2.6V10h2.5v1.1h.1a2.8 2.8 0 0 1 2.5-1.4c2.7 0 3.2 1.8 3.2 4z" },
+        whatsapp: { c: "#25d366", p: "M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2a.4.4 0 0 0 0-.4c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3A2.8 2.8 0 0 0 6.4 10a4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c2 .8 2 .5 2.4.5a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.4-.3z" },
+        telegram: { c: "#26a5e4", p: "M22 4.5 2.5 12c-.9.4-.9 1.6 0 1.9l4.9 1.5 1.9 5.7c.3.8 1.2 1 1.8.4l2.7-2.5 4.8 3.5c.7.5 1.7.1 1.9-.7L23 5.7c.2-.9-.6-1.6-1-1.2zM9.5 14.3l8-5-6.5 6-.3 3.6z" },
+        email: { c: "#0d9488", p: "M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5z" },
+        pinterest: { c: "#e60023", p: "M12 2a10 10 0 0 0-3.6 19.3c-.1-.8-.2-2 0-2.9l1.2-5.1s-.3-.6-.3-1.5c0-1.4.8-2.4 1.8-2.4.9 0 1.3.6 1.3 1.4 0 .9-.5 2.1-.8 3.3-.2.9.5 1.7 1.4 1.7 1.7 0 2.9-2.2 2.9-4.8 0-2-1.3-3.4-3.8-3.4a4.3 4.3 0 0 0-4.5 4.3c0 .8.3 1.4.6 1.8.1.2.2.3.1.5l-.2.9c-.1.3-.3.4-.6.2-1.1-.5-1.7-1.9-1.7-3.5C5.5 8.3 7.6 6 11.6 6c3.3 0 5.6 2.4 5.6 5.2 0 3.3-1.9 5.8-4.6 5.8-.9 0-1.8-.5-2.1-1l-.6 2.2c-.2.8-.7 1.7-1 2.3A10 10 0 1 0 12 2z" },
+        reddit: { c: "#ff4500", p: "M22 12a2.1 2.1 0 0 0-3.6-1.5 10.3 10.3 0 0 0-5.3-1.7l.9-4.2 3 .7a1.5 1.5 0 1 0 .2-1l-3.4-.7a.5.5 0 0 0-.6.4l-1 4.8a10.4 10.4 0 0 0-5.4 1.7A2.1 2.1 0 1 0 4.5 14a4 4 0 0 0 0 .6c0 2.9 3.4 5.3 7.6 5.3s7.6-2.4 7.6-5.3a4 4 0 0 0 0-.6A2.1 2.1 0 0 0 22 12zm-13 1.5a1.3 1.3 0 1 1 1.3 1.3A1.3 1.3 0 0 1 9 13.5zm7.6 3.4a4.7 4.7 0 0 1-3.3 1 4.7 4.7 0 0 1-3.3-1 .4.4 0 0 1 .6-.6 4 4 0 0 0 2.7.8 4 4 0 0 0 2.7-.8.4.4 0 1 1 .6.6zm-.4-2.1a1.3 1.3 0 1 1 1.3-1.3 1.3 1.3 0 0 1-1.3 1.3z" },
+        copy: { c: "#64748b", p: "M9 5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-1v-2h1V5h-6v1H9zm-4 4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2zm2 0v8h6V9z" },
+      };
+      const btns = nets
+        .map((n) => {
+          const net = String(n.network ?? "").toLowerCase();
+          const def = NET[net] || NET.copy;
+          const color = mono ? monoColor : def.c;
+          return `<button class="jw-sh" data-net="${esc(net)}" aria-label="${esc(net)}" style="background:${color}"><svg viewBox="0 0 24 24" fill="#fff" width="52%" height="52%"><path d="${def.p}"/></svg></button>`;
+        })
+        .join("");
+      const html = `<div class="jw jw-socialshare" data-url="${esc(shareUrl)}" data-text="${esc(shareText)}" style="text-align:${align}">
+        ${config.heading ? `<h3 class="jw-heading">${esc(config.heading)}</h3>` : ""}
+        <div class="jw-sh-row">${btns}</div>
+        <span class="jw-sh-toast" hidden>Link copied!</span>
+        ${brand}
+      </div>`;
+      const radius = shape === "square" ? "12px" : "50%";
+      const css = `
+        ${r} .jw-socialshare{font-family:inherit}
+        ${r} .jw-heading{font-size:18px;font-weight:600;margin:0 0 12px;color:#0f172a}
+        ${r} .jw-sh-row{display:inline-flex;flex-wrap:wrap;gap:10px}
+        ${r} .jw-sh{width:${size}px;height:${size}px;border:0;border-radius:${radius};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s,filter .15s}
+        ${r} .jw-sh:hover{transform:translateY(-3px);filter:brightness(1.08)}
+        ${r} .jw-sh-toast{display:block;margin-top:10px;font-size:13px;color:#0d9488;font-weight:600}
+        ${r} .jw-sh-toast[hidden]{display:none}
+        ${r} .jw-brand{margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Audio Player ───────────────────────────────────────────────────────────
+    case "audio": {
+      const accent = col(config.accentColor, "#0d9488");
+      const bg = col(config.bgColor, "#0f172a");
+      const art = String(config.artwork ?? "");
+      const src = safeUrl(config.audioUrl);
+      const html = `<div class="jw jw-audiow">
+        <div class="jw-audio" style="background:${bg}">
+          ${art ? `<img class="jw-au-art" src="${safeUrl(art)}" alt=""/>` : `<div class="jw-au-art jw-au-ph" style="background:${accent}33;color:${accent}">♪</div>`}
+          <div class="jw-au-body">
+            <div class="jw-au-title">${esc(config.title)}</div>
+            <div class="jw-au-artist">${esc(config.artist)}</div>
+            <audio class="jw-au-el" controls preload="metadata"${bool(config.loop, false) ? " loop" : ""}${src !== "#" ? ` src="${src}"` : ""}></audio>
+          </div>
+        </div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-audiow{font-family:inherit}
+        ${r} .jw-audio{display:flex;align-items:center;gap:16px;padding:16px;border-radius:16px;color:#fff}
+        ${r} .jw-au-art{width:76px;height:76px;border-radius:12px;object-fit:cover;flex:none}
+        ${r} .jw-au-ph{display:flex;align-items:center;justify-content:center;font-size:34px}
+        ${r} .jw-au-body{flex:1;min-width:0}
+        ${r} .jw-au-title{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        ${r} .jw-au-artist{font-size:13px;opacity:.7;margin-bottom:8px}
+        ${r} .jw-au-el{width:100%;height:36px}
+        ${r} .jw-brand{margin-top:10px;font-size:12px;text-align:center}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Image Hotspots ─────────────────────────────────────────────────────────
+    case "imagehotspots": {
+      const img = safeUrl(config.image);
+      const pins = arr(config.points);
+      const pinColor = col(config.pinColor, "#0d9488");
+      const rad = bool(config.rounded, true) ? "16px" : "0";
+      const dots = pins
+        .map((p, i) => {
+          const x = Math.max(0, Math.min(100, num(p.x, 50)));
+          const y = Math.max(0, Math.min(100, num(p.y, 50)));
+          return `<button class="jw-hs-pin" data-i="${i}" style="left:${x}%;top:${y}%" aria-label="${esc(p.title)}"><span class="jw-hs-dot" style="background:${pinColor}"></span><span class="jw-hs-tip"><b>${esc(p.title)}</b>${p.text ? `<span>${esc(p.text)}</span>` : ""}</span></button>`;
+        })
+        .join("");
+      const html = `<div class="jw jw-hotspots">
+        <div class="jw-hs-stage" style="border-radius:${rad}">
+          ${img !== "#" ? `<img src="${img}" alt="" class="jw-hs-img"/>` : `<div class="jw-hs-empty">Add an image</div>`}
+          ${dots}
+        </div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-hotspots{font-family:inherit}
+        ${r} .jw-hs-stage{position:relative;overflow:hidden;line-height:0}
+        ${r} .jw-hs-img{width:100%;display:block}
+        ${r} .jw-hs-empty{padding:60px;text-align:center;color:#94a3b8;background:#f1f5f9;line-height:normal}
+        ${r} .jw-hs-pin{position:absolute;transform:translate(-50%,-50%);border:0;background:transparent;cursor:pointer;padding:0}
+        ${r} .jw-hs-dot{display:block;width:20px;height:20px;border-radius:50%;box-shadow:0 0 0 4px rgba(255,255,255,.55),0 2px 6px rgba(0,0,0,.3)}
+        ${r} .jw-hs-tip{position:absolute;bottom:150%;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 12px;border-radius:10px;width:180px;font-size:13px;line-height:1.4;opacity:0;visibility:hidden;transition:opacity .2s;text-align:left;z-index:5}
+        ${r} .jw-hs-tip b{display:block;margin-bottom:3px}
+        ${r} .jw-hs-pin:hover .jw-hs-tip,${r} .jw-hs-pin.jw-open .jw-hs-tip{opacity:1;visibility:visible}
+        ${r} .jw-brand{text-align:center;margin-top:14px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Rating Badge ───────────────────────────────────────────────────────────
+    case "rating": {
+      const rating = Math.max(0, Math.min(5, num(config.rating, 4.8)));
+      const count = num(config.count, 0);
+      const starColor = col(config.starColor, "#f59e0b");
+      const layout = String(config.layout ?? "card");
+      const pct = (rating / 5) * 100;
+      const showCount = bool(config.showCount, true);
+      const starEls = `<span class="jw-rt-stars"><span class="jw-rt-bg">★★★★★</span><span class="jw-rt-fg" style="width:${pct}%;color:${starColor}">★★★★★</span></span>`;
+      const countTxt = showCount && count ? `<span class="jw-rt-count">(${count.toLocaleString("en-IN")} reviews)</span>` : "";
+      const html = `<div class="jw jw-rating jw-rt-${layout}">
+        <div class="jw-rt-main"><span class="jw-rt-num">${rating.toFixed(1)}</span>${starEls}</div>
+        ${config.label || countTxt ? `<div class="jw-rt-sub">${config.label ? `<span>${esc(config.label)}</span> ` : ""}${countTxt}</div>` : ""}
+        ${config.source ? `<div class="jw-rt-src">via ${esc(config.source)}</div>` : ""}
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-rating{font-family:inherit}
+        ${r} .jw-rt-card{text-align:center;border:1px solid #e5e7eb;border-radius:16px;padding:22px;display:inline-block;background:#fff}
+        ${r} .jw-rt-inline{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
+        ${r} .jw-rt-main{display:flex;align-items:center;justify-content:center;gap:10px}
+        ${r} .jw-rt-num{font-size:34px;font-weight:800;color:#0f172a;line-height:1}
+        ${r} .jw-rt-inline .jw-rt-num{font-size:22px}
+        ${r} .jw-rt-stars{position:relative;display:inline-block;font-size:22px;letter-spacing:2px;line-height:1}
+        ${r} .jw-rt-bg{color:#e5e7eb}
+        ${r} .jw-rt-fg{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap}
+        ${r} .jw-rt-sub{margin-top:8px;color:#64748b;font-size:14px}
+        ${r} .jw-rt-inline .jw-rt-sub{margin-top:0}
+        ${r} .jw-rt-src{margin-top:2px;color:#94a3b8;font-size:12px}
+        ${r} .jw-brand{margin-top:12px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── Contact Card ───────────────────────────────────────────────────────────
+    case "contactcard": {
+      const accent = col(config.accentColor, "#0d9488");
+      const rad = bool(config.rounded, true) ? "18px" : "4px";
+      const av = String(config.avatar ?? "");
+      const phone = String(config.phone ?? "").trim();
+      const email = String(config.email ?? "").trim();
+      const address = String(config.address ?? "").trim();
+      const website = String(config.website ?? "").trim();
+      const initials = String(config.name ?? "?").split(" ").map((w) => w.charAt(0)).join("").slice(0, 2);
+      const btn = (href: string, label: string, svg: string) =>
+        `<a class="jw-cc-btn" href="${href}"${href.indexOf("http") === 0 ? ' target="_blank" rel="noopener"' : ""}><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>${label}</a>`;
+      const actions = [
+        phone ? btn(`tel:${esc(phone)}`, "Call", `<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.1-1.1a2 2 0 0 1 2.1-.5c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"/>`) : "",
+        email ? btn(`mailto:${esc(email)}`, "Email", `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/>`) : "",
+        address ? btn(`https://maps.google.com/?q=${encodeURIComponent(address)}`, "Directions", `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>`) : "",
+        website ? btn(safeUrl(website), "Website", `<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>`) : "",
+      ].filter(Boolean).join("");
+      const html = `<div class="jw jw-contactcard" style="border-radius:${rad}">
+        <div class="jw-cc-top" style="background:${accent}">
+          ${av ? `<img class="jw-cc-av" src="${safeUrl(av)}" alt=""/>` : `<span class="jw-cc-av jw-cc-ph">${esc(initials)}</span>`}
+        </div>
+        <div class="jw-cc-body">
+          <h3 class="jw-cc-name">${esc(config.name)}</h3>
+          <p class="jw-cc-role">${esc(config.role)}${config.role && config.company ? " · " : ""}${esc(config.company)}</p>
+          <div class="jw-cc-actions">${actions}</div>
+        </div>
+        ${brand}
+      </div>`;
+      const css = `
+        ${r} .jw-contactcard{font-family:inherit;max-width:360px;margin:0 auto;border:1px solid #e5e7eb;overflow:hidden;background:#fff}
+        ${r} .jw-cc-top{height:74px;position:relative}
+        ${r} .jw-cc-av,${r} .jw-cc-ph{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);width:78px;height:78px;border-radius:50%;object-fit:cover;border:4px solid #fff}
+        ${r} .jw-cc-ph{background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700}
+        ${r} .jw-cc-body{padding:46px 20px 22px;text-align:center}
+        ${r} .jw-cc-name{margin:0;font-size:20px;font-weight:700;color:#0f172a}
+        ${r} .jw-cc-role{margin:4px 0 16px;color:#64748b;font-size:14px}
+        ${r} .jw-cc-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+        ${r} .jw-cc-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:#f1f5f9;color:#334155;text-decoration:none;font-size:13px;font-weight:600;transition:background .15s,color .15s}
+        ${r} .jw-cc-btn:hover{background:${accent};color:#fff}
+        ${r} .jw-brand{text-align:center;padding-bottom:12px;font-size:12px}
+        ${r} .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "block", html, css };
+    }
+
+    // ── AI Assistant (Chatbot) ───────────────────────────────────────────────────
+    case "chatbot": {
+      const primary = col(config.primaryColor, "#0d9488");
+      const pos = String(config.position ?? "bottom-right") === "bottom-left" ? "left" : "right";
+      const ai = bool(config.aiEnabled, true);
+      const endpoint = opts.embedKey ? `${apiBase}/api/embed/chat/${opts.embedKey}` : "";
+      const avatar = String(config.avatar ?? "");
+      const icon = String(config.launcherIcon ?? "💬");
+      const name = esc(config.botName || "Assistant");
+      const faqArr = arr(config.knowledge)
+        .map((k) => ({ q: String(k.question ?? ""), a: String(k.answer ?? "") }))
+        .filter((k) => k.q && k.a);
+      const faqJson = esc(JSON.stringify(faqArr));
+      const sugs = arr(config.suggestions).map((s) => `<button type="button" class="jw-cbot-sug">${esc(s.text)}</button>`).join("");
+      const av = avatar
+        ? `<img class="jw-cbot-av" src="${safeUrl(avatar)}" alt=""/>`
+        : `<span class="jw-cbot-av jw-cbot-av-ic">${esc(icon)}</span>`;
+      const html = `<div class="jw jw-cbot" data-pos="${pos}" data-ai="${ai ? "1" : "0"}" data-preview="${opts.preview ? 1 : 0}" data-open="${bool(config.openByDefault, false) ? 1 : 0}" data-endpoint="${esc(endpoint)}" data-fallback="${esc(config.fallbackMessage)}" data-faq="${faqJson}">
+        <button class="jw-cbot-launch" aria-label="Open chat" style="background:${primary}">
+          <span class="jw-cbot-launch-ic">${esc(icon)}</span>
+          ${config.launcherLabel ? `<span class="jw-cbot-launch-lbl">${esc(config.launcherLabel)}</span>` : ""}
+        </button>
+        <div class="jw-cbot-panel" hidden>
+          <div class="jw-cbot-head" style="background:${primary}">
+            ${av}
+            <div class="jw-cbot-hid"><b>${name}</b><em>${ai ? "AI Assistant" : "We're here to help"}</em></div>
+            <button class="jw-cbot-close" aria-label="Close chat">&times;</button>
+          </div>
+          <div class="jw-cbot-msgs"><div class="jw-cbot-msg jw-cbot-bot">${esc(config.welcomeMessage)}</div></div>
+          ${sugs ? `<div class="jw-cbot-sugs">${sugs}</div>` : ""}
+          <form class="jw-cbot-input">
+            <input type="text" placeholder="${esc(config.inputPlaceholder || "Type your message…")}" autocomplete="off"/>
+            <button type="submit" aria-label="Send" style="color:${primary}"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 20.5v-6l8-2.5-8-2.5v-6l19 8.5z"/></svg></button>
+          </form>
+          ${brand}
+        </div>
+      </div>`;
+      const side = pos === "left" ? "left:20px" : "right:20px";
+      const css = `
+        ${r} .jw-cbot{font-family:inherit}
+        ${r} .jw-cbot-launch{position:fixed;bottom:20px;${side};z-index:2147482000;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;color:#fff;padding:0 20px 0 0;height:58px;cursor:pointer;box-shadow:0 12px 30px -6px rgba(0,0,0,.4);transition:transform .15s}
+        ${r} .jw-cbot-launch:hover{transform:translateY(-2px)}
+        ${r} .jw-cbot-launch-ic{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;font-size:26px}
+        ${r} .jw-cbot-launch-lbl{font-weight:600;font-size:15px;white-space:nowrap}
+        ${r} .jw-cbot.jw-cbot-open .jw-cbot-launch{display:none}
+        ${r} .jw-cbot-panel{position:fixed;bottom:20px;${side};z-index:2147482001;width:370px;max-width:calc(100vw - 40px);height:540px;max-height:calc(100vh - 40px);background:#fff;border-radius:18px;box-shadow:0 24px 60px -12px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden}
+        ${r} .jw-cbot-panel[hidden]{display:none}
+        ${r} .jw-cbot-head{display:flex;align-items:center;gap:10px;padding:14px 16px;color:#fff}
+        ${r} .jw-cbot-av{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none}
+        ${r} .jw-cbot-av-ic{display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,.22)}
+        ${r} .jw-cbot-hid{flex:1;min-width:0;line-height:1.25}
+        ${r} .jw-cbot-hid b{display:block;font-size:15px}
+        ${r} .jw-cbot-hid em{font-style:normal;font-size:12px;opacity:.85}
+        ${r} .jw-cbot-close{background:transparent;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer;opacity:.9}
+        ${r} .jw-cbot-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f8fafc}
+        ${r} .jw-cbot-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+        ${r} .jw-cbot-bot{align-self:flex-start;background:#fff;border:1px solid #e5e7eb;color:#334155;border-bottom-left-radius:4px}
+        ${r} .jw-cbot-user{align-self:flex-end;background:${primary};color:#fff;border-bottom-right-radius:4px}
+        ${r} .jw-cbot-typing{display:flex;gap:4px;align-items:center;min-width:44px}
+        ${r} .jw-cbot-typing span{width:7px;height:7px;border-radius:50%;background:#cbd5e1;display:inline-block;animation:jw-cbot-bounce 1.2s infinite}
+        ${r} .jw-cbot-typing span:nth-child(2){animation-delay:.2s}
+        ${r} .jw-cbot-typing span:nth-child(3){animation-delay:.4s}
+        @keyframes jw-cbot-bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+        ${r} .jw-cbot-sugs{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;background:#f8fafc}
+        ${r} .jw-cbot-sug{border:1px solid ${primary}55;background:#fff;color:${primary};border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;transition:background .15s}
+        ${r} .jw-cbot-sug:hover{background:${primary}14}
+        ${r} .jw-cbot-input{display:flex;align-items:center;gap:6px;padding:8px 12px;border-top:1px solid #e5e7eb;background:#fff}
+        ${r} .jw-cbot-input input{flex:1;border:0;outline:none;font-size:14px;padding:8px;background:transparent;color:#0f172a}
+        ${r} .jw-cbot-input button{background:transparent;border:0;cursor:pointer;display:inline-flex;padding:4px}
+        ${r} .jw-cbot-panel .jw-brand{text-align:center;font-size:11px;padding:6px 0;background:#fff}
+        ${r} .jw-cbot-panel .jw-brand a{color:#94a3b8;text-decoration:none}`;
+      return { mode: "overlay", html, css };
+    }
+
     default:
       return { mode: "block", html: `<div class="jw">Unknown tool.</div>`, css: "" };
   }

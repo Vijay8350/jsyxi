@@ -3,11 +3,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-medium transition-all duration-200 ease-out active:scale-[0.97] focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-50 disabled:active:scale-100",
+  "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all duration-200 ease-out active:scale-[0.97] focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-50 disabled:active:scale-100",
   {
     variants: {
       variant: {
-        primary: "bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/25",
+        primary: "bg-brand-700 text-white shadow-sm hover:bg-brand-800 hover:shadow-lg hover:shadow-brand-700/25",
         accent: "bg-accent-600 text-white shadow-sm hover:bg-accent-500 hover:shadow-lg hover:shadow-accent-500/25",
         secondary: "bg-white text-ink border border-line shadow-sm hover:border-brand-300 hover:bg-brand-50/60 hover:text-brand-700",
         ghost: "text-slate-600 hover:bg-brand-50 hover:text-brand-700",

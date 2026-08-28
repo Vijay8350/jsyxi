@@ -3,6 +3,9 @@ import {
   Clock, Hash, Building2, Users, History, ArrowUpToLine, Images, MousePointerClick,
   SplitSquareHorizontal, GalleryHorizontalEnd, LayoutGrid, UtensilsCrossed, ShieldAlert, Cookie,
   Calculator, CalendarDays, Briefcase, Accessibility, MapPinned, Eye,
+  Tag, Bell, Share2, Sparkles, AppWindow,
+  Play, TicketPercent, TrendingUp, PanelTop, ScrollText,
+  Quote, Type, Layers, Flag, Table2, Share, Music, Target, Contact,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +38,27 @@ export const TOOL_ICONS: Record<string, LucideIcon> = {
   accessibility: Accessibility,
   storelocator: MapPinned,
   visitors: Eye,
+  pricing: Tag,
+  announcement: Bell,
+  socialicons: Share2,
+  features: Sparkles,
+  tabs: AppWindow,
+  video: Play,
+  coupon: TicketPercent,
+  stats: TrendingUp,
+  progressbar: PanelTop,
+  marquee: ScrollText,
+  testimonialslider: Quote,
+  typewriter: Type,
+  flipcard: Layers,
+  banner: Flag,
+  comparison: Table2,
+  socialshare: Share,
+  audio: Music,
+  imagehotspots: Target,
+  rating: Star,
+  contactcard: Contact,
+  chatbot: Bot,
 };
 
 export function toolIcon(key: string): LucideIcon {

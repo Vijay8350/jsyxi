@@ -52,3 +52,6 @@ ds-bundle/
 .design-sync/.cache/
 .design-sync/learnings/
 .design-sync/node_modules
+
+# Design source working files (final assets live in public/)
+design-assets/

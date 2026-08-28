@@ -1074,6 +1074,763 @@ export const TOOLS: ToolDef[] = [
       { name: "Today's Views", useCase: "Live badge", industry: "General", preset: { metric: "today", label: "Views today", layout: "badge" } },
     ],
   },
+
+  // 29 ── Pricing Table ───────────────────────────────────────────────────────
+  {
+    key: "pricing",
+    name: "Pricing Table",
+    categorySlug: "marketing",
+    badges: ["Conversion"],
+    description: "Show pricing plans side by side with features and call-to-action buttons.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Simple, transparent pricing" },
+        {
+          key: "plans", label: "Plans", type: "list", group: "content", addLabel: "Add plan",
+          default: [
+            { name: "Starter", price: "₹0", period: "/mo", features: "1 widget\nBasic support\nCommunity access", cta: "Get started", url: "#", featured: false },
+            { name: "Pro", price: "₹999", period: "/mo", features: "Unlimited widgets\nPriority support\nRemove branding", cta: "Start Pro", url: "#", featured: true },
+            { name: "Agency", price: "₹2999", period: "/mo", features: "Everything in Pro\nClient workspaces\nDedicated manager", cta: "Contact us", url: "#", featured: false },
+          ],
+          itemFields: [
+            { key: "name", label: "Plan name", type: "text", group: "content", default: "" },
+            { key: "price", label: "Price", type: "text", group: "content", default: "" },
+            { key: "period", label: "Period", type: "text", group: "content", default: "/mo" },
+            { key: "features", label: "Features (one per line)", type: "textarea", group: "content", default: "" },
+            { key: "cta", label: "Button label", type: "text", group: "content", default: "Choose" },
+            { key: "url", label: "Button URL", type: "url", group: "content", default: "#" },
+            { key: "featured", label: "Highlight this plan", type: "toggle", group: "content", default: false },
+          ],
+        },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+        { key: "showHeading", label: "Show heading", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "SaaS Pricing", useCase: "Plans page", industry: "SaaS", preset: {} },
+      { name: "Service Packages", useCase: "Agency", industry: "Services", preset: { heading: "Choose a package" } },
+    ],
+  },
+
+  // 30 ── Announcement Bar ────────────────────────────────────────────────────
+  {
+    key: "announcement",
+    name: "Announcement Bar",
+    categorySlug: "marketing",
+    badges: ["Marketing"],
+    description: "A dismissible top or bottom bar to announce offers, news, or free shipping.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "text", label: "Message", type: "text", group: "content", default: "🎉 Free shipping on all orders over ₹999!" },
+        { key: "linkLabel", label: "Link label", type: "text", group: "content", default: "Shop now" },
+        { key: "linkUrl", label: "Link URL", type: "url", group: "content", default: "#" },
+        { key: "position", label: "Position", type: "select", group: "layout", default: "top",
+          options: [{ value: "top", label: "Top" }, { value: "bottom", label: "Bottom" }] },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0d9488" },
+        { key: "textColor", label: "Text colour", type: "color", group: "style", default: "#ffffff" },
+        { key: "dismissible", label: "Allow dismiss", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Free Shipping", useCase: "Ecommerce", industry: "E-commerce", preset: {} },
+      { name: "Launch Notice", useCase: "Announcement", industry: "General", preset: { text: "🚀 We just launched! Check out what's new.", linkLabel: "See more" } },
+    ],
+  },
+
+  // 31 ── Social Media Icons ──────────────────────────────────────────────────
+  {
+    key: "socialicons",
+    name: "Social Media Icons",
+    categorySlug: "contact-chat",
+    badges: ["No-code"],
+    description: "Link visitors to all your social profiles with clean, branded icons.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Follow us" },
+        {
+          key: "links", label: "Profiles", type: "list", group: "content", addLabel: "Add profile",
+          default: [
+            { network: "facebook", url: "https://facebook.com/" },
+            { network: "instagram", url: "https://instagram.com/" },
+            { network: "twitter", url: "https://x.com/" },
+            { network: "linkedin", url: "https://linkedin.com/" },
+            { network: "youtube", url: "https://youtube.com/" },
+          ],
+          itemFields: [
+            { key: "network", label: "Network", type: "select", group: "content", default: "facebook",
+              options: [
+                { value: "facebook", label: "Facebook" }, { value: "instagram", label: "Instagram" }, { value: "twitter", label: "X / Twitter" },
+                { value: "linkedin", label: "LinkedIn" }, { value: "youtube", label: "YouTube" }, { value: "whatsapp", label: "WhatsApp" },
+                { value: "telegram", label: "Telegram" }, { value: "tiktok", label: "TikTok" }, { value: "pinterest", label: "Pinterest" }, { value: "email", label: "Email" },
+              ] },
+            { key: "url", label: "URL", type: "url", group: "content", default: "" },
+          ],
+        },
+        { key: "shape", label: "Shape", type: "select", group: "layout", default: "circle",
+          options: [{ value: "circle", label: "Circle" }, { value: "square", label: "Rounded square" }] },
+        { key: "size", label: "Icon size (px)", type: "number", group: "layout", default: 44, min: 28, max: 72 },
+        { key: "align", label: "Alignment", type: "select", group: "layout", default: "center",
+          options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }] },
+        { key: "colorStyle", label: "Colour style", type: "select", group: "style", default: "brand",
+          options: [{ value: "brand", label: "Brand colours" }, { value: "mono", label: "Monochrome" }] },
+        { key: "monoColor", label: "Monochrome colour", type: "color", group: "style", default: "#0f172a" },
+        { key: "showHeading", label: "Show heading", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Footer Icons", useCase: "Site footer", industry: "General", preset: { shape: "circle" } },
+      { name: "Monochrome Row", useCase: "Minimal", industry: "General", preset: { colorStyle: "mono" } },
+    ],
+  },
+
+  // 32 ── Feature Grid ────────────────────────────────────────────────────────
+  {
+    key: "features",
+    name: "Feature Grid",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "Highlight product features or benefits in a clean icon grid.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Why choose us" },
+        {
+          key: "items", label: "Features", type: "list", group: "content", addLabel: "Add feature",
+          default: [
+            { icon: "⚡", title: "Fast setup", text: "Launch in minutes with no code." },
+            { icon: "🎨", title: "Fully customizable", text: "Match your brand in a few clicks." },
+            { icon: "🔒", title: "Secure by default", text: "Bot and spam protection built in." },
+            { icon: "📈", title: "Grows with you", text: "From first sale to full scale." },
+          ],
+          itemFields: [
+            { key: "icon", label: "Icon (emoji)", type: "text", group: "content", default: "⭐" },
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "text", label: "Description", type: "textarea", group: "content", default: "" },
+          ],
+        },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 3, min: 1, max: 4 },
+        { key: "align", label: "Text align", type: "select", group: "layout", default: "center",
+          options: [{ value: "center", label: "Center" }, { value: "left", label: "Left" }] },
+        { key: "accentColor", label: "Icon background", type: "color", group: "style", default: "#ccfbf1" },
+        { key: "showHeading", label: "Show heading", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Product Features", useCase: "Landing page", industry: "SaaS", preset: {} },
+      { name: "Service Benefits", useCase: "Agency", industry: "Services", preset: { columns: 4 } },
+    ],
+  },
+
+  // 33 ── Tabs ────────────────────────────────────────────────────────────────
+  {
+    key: "tabs",
+    name: "Tabs",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "Organize content into clean, clickable tabbed sections.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        {
+          key: "items", label: "Tabs", type: "list", group: "content", addLabel: "Add tab",
+          default: [
+            { title: "Overview", body: "Write an overview of your product or service here." },
+            { title: "Features", body: "List the key features your customers care about." },
+            { title: "FAQ", body: "Answer the most common questions in this tab." },
+          ],
+          itemFields: [
+            { key: "title", label: "Tab title", type: "text", group: "content", default: "" },
+            { key: "body", label: "Tab content", type: "textarea", group: "content", default: "" },
+          ],
+        },
+        { key: "align", label: "Tab alignment", type: "select", group: "layout", default: "left",
+          options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }] },
+        { key: "accentColor", label: "Active colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "rounded", label: "Rounded", type: "toggle", group: "style", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Product Tabs", useCase: "Product page", industry: "E-commerce", preset: {} },
+      { name: "Info Tabs", useCase: "Content", industry: "General", preset: { align: "center" } },
+    ],
+  },
+
+  // 34 ── Video Popup ─────────────────────────────────────────────────────────
+  {
+    key: "video",
+    name: "Video Popup",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "Embed a YouTube or Vimeo video inline or as a click-to-play popup.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "videoUrl", label: "Video URL (YouTube or Vimeo)", type: "url", group: "content", default: "https://www.youtube.com/watch?v=aqz-KE-bpKQ" },
+        { key: "title", label: "Title", type: "text", group: "content", default: "Watch our story" },
+        { key: "thumbnail", label: "Custom thumbnail (optional)", type: "image", group: "content", default: "" },
+        { key: "mode", label: "Display", type: "select", group: "layout", default: "popup",
+          options: [{ value: "popup", label: "Click-to-play popup" }, { value: "inline", label: "Inline embed" }] },
+        { key: "ratio", label: "Aspect ratio", type: "select", group: "layout", default: "16:9",
+          options: [{ value: "16:9", label: "16:9" }, { value: "4:3", label: "4:3" }, { value: "1:1", label: "1:1" }] },
+        { key: "accentColor", label: "Play button colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+        { key: "showTitle", label: "Show title", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Hero Video", useCase: "Landing page", industry: "General", preset: { mode: "popup" } },
+      { name: "Inline Explainer", useCase: "Product page", industry: "SaaS", preset: { mode: "inline" } },
+    ],
+  },
+
+  // 35 ── Coupon Code ─────────────────────────────────────────────────────────
+  {
+    key: "coupon",
+    name: "Coupon Code",
+    categorySlug: "marketing",
+    badges: ["Conversion"],
+    description: "Show a promo code visitors can copy with one click.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Get 10% off your first order" },
+        { key: "description", label: "Description", type: "textarea", group: "content", default: "Use this code at checkout." },
+        { key: "code", label: "Coupon code", type: "text", group: "content", default: "WELCOME10" },
+        { key: "copyLabel", label: "Copy button label", type: "text", group: "content", default: "Copy code" },
+        { key: "successLabel", label: "Copied label", type: "text", group: "content", default: "Copied!" },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#f0fdfa" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Welcome Offer", useCase: "New visitors", industry: "E-commerce", preset: {} },
+      { name: "Flash Sale", useCase: "Promotion", industry: "Retail", preset: { heading: "Flash sale — 25% off", code: "FLASH25" } },
+    ],
+  },
+
+  // 36 ── Stats Counter ───────────────────────────────────────────────────────
+  {
+    key: "stats",
+    name: "Stats Counter",
+    categorySlug: "social-proof",
+    badges: ["Social Proof"],
+    description: "Show off key numbers with an animated count-up effect.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "" },
+        {
+          key: "items", label: "Stats", type: "list", group: "content", addLabel: "Add stat",
+          default: [
+            { value: 12000, prefix: "", suffix: "+", label: "Happy customers" },
+            { value: 4.9, prefix: "", suffix: "/5", label: "Average rating" },
+            { value: 50, prefix: "", suffix: "+", label: "Countries" },
+            { value: 99, prefix: "", suffix: "%", label: "Uptime" },
+          ],
+          itemFields: [
+            { key: "value", label: "Number", type: "number", group: "content", default: 0 },
+            { key: "prefix", label: "Prefix", type: "text", group: "content", default: "" },
+            { key: "suffix", label: "Suffix", type: "text", group: "content", default: "" },
+            { key: "label", label: "Label", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 4, min: 1, max: 4 },
+        { key: "accentColor", label: "Number colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "animate", label: "Count-up animation", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Company Stats", useCase: "About page", industry: "General", preset: {} },
+      { name: "Trust Numbers", useCase: "Landing page", industry: "SaaS", preset: { columns: 3 } },
+    ],
+  },
+
+  // 37 ── Reading Progress Bar ────────────────────────────────────────────────
+  {
+    key: "progressbar",
+    name: "Reading Progress Bar",
+    categorySlug: "utility",
+    badges: ["Utility"],
+    description: "A slim bar that fills as visitors scroll down the page.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "position", label: "Position", type: "select", group: "layout", default: "top",
+          options: [{ value: "top", label: "Top of page" }, { value: "bottom", label: "Bottom of page" }] },
+        { key: "color", label: "Bar colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "trackColor", label: "Track colour", type: "color", group: "style", default: "#e5e7eb" },
+        { key: "height", label: "Height (px)", type: "number", group: "style", default: 5, min: 2, max: 16 },
+        { key: "showTrack", label: "Show track", type: "toggle", group: "behaviour", default: false },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Blog Progress", useCase: "Article pages", industry: "Content", preset: {} },
+      { name: "Bottom Bar", useCase: "Long pages", industry: "General", preset: { position: "bottom" } },
+    ],
+  },
+
+  // 38 ── Marquee Ticker ──────────────────────────────────────────────────────
+  {
+    key: "marquee",
+    name: "Marquee Ticker",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "A smooth scrolling ticker for announcements, offers, or highlights.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        {
+          key: "items", label: "Items", type: "list", group: "content", addLabel: "Add item",
+          default: [
+            { text: "🚚 Free shipping over ₹999" },
+            { text: "⭐ 4.9/5 from 12,000+ customers" },
+            { text: "🔒 Secure checkout" },
+            { text: "↩️ 30-day easy returns" },
+          ],
+          itemFields: [
+            { key: "text", label: "Text", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "speed", label: "Speed (seconds per loop)", type: "number", group: "layout", default: 20, min: 5, max: 120 },
+        { key: "direction", label: "Direction", type: "select", group: "layout", default: "left",
+          options: [{ value: "left", label: "Left" }, { value: "right", label: "Right" }] },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0f172a" },
+        { key: "textColor", label: "Text colour", type: "color", group: "style", default: "#ffffff" },
+        { key: "fontSize", label: "Font size (px)", type: "number", group: "style", default: 15, min: 11, max: 28 },
+        { key: "pauseOnHover", label: "Pause on hover", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Promo Ticker", useCase: "Store header", industry: "E-commerce", preset: {} },
+      { name: "News Ticker", useCase: "Announcements", industry: "General", preset: { bgColor: "#0d9488" } },
+    ],
+  },
+
+  // 39 ── Testimonial Slider ──────────────────────────────────────────────────
+  {
+    key: "testimonialslider",
+    name: "Testimonial Slider",
+    categorySlug: "social-proof",
+    badges: ["Social Proof"],
+    description: "Rotate customer quotes in an auto-playing carousel with ratings.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "What our customers say" },
+        {
+          key: "items", label: "Testimonials", type: "list", group: "content", addLabel: "Add testimonial",
+          default: [
+            { quote: "This is the easiest widget tool we've ever used. Live in minutes.", author: "Neha K.", role: "Founder, Bloom", rating: 5, avatar: "" },
+            { quote: "Support is fantastic and it just works on our store.", author: "Rahul M.", role: "Owner, TenderLeaf", rating: 5, avatar: "" },
+            { quote: "Clean, fast, and easy to customize to our brand.", author: "Divya R.", role: "Studio Craft", rating: 5, avatar: "" },
+          ],
+          itemFields: [
+            { key: "quote", label: "Quote", type: "textarea", group: "content", default: "" },
+            { key: "author", label: "Author", type: "text", group: "content", default: "" },
+            { key: "role", label: "Role", type: "text", group: "content", default: "" },
+            { key: "rating", label: "Rating", type: "number", group: "content", default: 5, min: 1, max: 5 },
+            { key: "avatar", label: "Avatar", type: "image", group: "content", default: "" },
+          ],
+        },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "cardBackground", label: "Card background", type: "color", group: "style", default: "#ffffff" },
+        { key: "autoplay", label: "Auto-advance", type: "toggle", group: "behaviour", default: true },
+        { key: "interval", label: "Interval (seconds)", type: "number", group: "behaviour", default: 5, min: 2, max: 30 },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Homepage Quotes", useCase: "Landing page", industry: "General", preset: {} },
+      { name: "Manual Slider", useCase: "Reviews", industry: "General", preset: { autoplay: false } },
+    ],
+  },
+
+  // 40 ── Typing Effect ───────────────────────────────────────────────────────
+  {
+    key: "typewriter",
+    name: "Typing Effect",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "An animated headline that types and deletes rotating phrases.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "prefix", label: "Static prefix", type: "text", group: "content", default: "We help you " },
+        {
+          key: "phrases", label: "Rotating phrases", type: "list", group: "content", addLabel: "Add phrase",
+          default: [
+            { text: "grow sales." },
+            { text: "capture leads." },
+            { text: "delight customers." },
+          ],
+          itemFields: [{ key: "text", label: "Phrase", type: "text", group: "content", default: "" }],
+        },
+        { key: "align", label: "Alignment", type: "select", group: "layout", default: "center",
+          options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }] },
+        { key: "fontSize", label: "Font size (px)", type: "number", group: "style", default: 34, min: 16, max: 72 },
+        { key: "textColor", label: "Text colour", type: "color", group: "style", default: "#0f172a" },
+        { key: "accentColor", label: "Phrase colour", type: "color", group: "style", default: "#0d9488" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Hero Headline", useCase: "Landing page", industry: "General", preset: {} },
+      { name: "Left Aligned", useCase: "Section header", industry: "General", preset: { align: "left" } },
+    ],
+  },
+
+  // 41 ── Flip Cards ──────────────────────────────────────────────────────────
+  {
+    key: "flipcard",
+    name: "Flip Cards",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "Cards that flip to reveal more detail on hover or click.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        {
+          key: "items", label: "Cards", type: "list", group: "content", addLabel: "Add card",
+          default: [
+            { icon: "🚀", front: "Fast", back: "Launch your widget in under five minutes with zero code." },
+            { icon: "🎯", front: "Focused", back: "Purpose-built tools that do one job really well." },
+            { icon: "💬", front: "Supported", back: "Friendly humans ready to help whenever you need it." },
+          ],
+          itemFields: [
+            { key: "icon", label: "Icon (emoji)", type: "text", group: "content", default: "⭐" },
+            { key: "front", label: "Front title", type: "text", group: "content", default: "" },
+            { key: "back", label: "Back text", type: "textarea", group: "content", default: "" },
+          ],
+        },
+        { key: "columns", label: "Columns", type: "number", group: "layout", default: 3, min: 1, max: 4 },
+        { key: "trigger", label: "Flip on", type: "select", group: "behaviour", default: "hover",
+          options: [{ value: "hover", label: "Hover" }, { value: "click", label: "Click / tap" }] },
+        { key: "frontColor", label: "Front background", type: "color", group: "style", default: "#0d9488" },
+        { key: "backColor", label: "Back background", type: "color", group: "style", default: "#0f172a" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Feature Flips", useCase: "Landing page", industry: "General", preset: {} },
+      { name: "Tap Cards", useCase: "Mobile", industry: "General", preset: { trigger: "click" } },
+    ],
+  },
+
+  // 42 ── Promo Banner ────────────────────────────────────────────────────────
+  {
+    key: "banner",
+    name: "Promo Banner",
+    categorySlug: "marketing",
+    badges: ["Conversion"],
+    description: "A bold call-to-action band with a heading, subtext, and button.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Ready to grow your store?" },
+        { key: "subtext", label: "Subtext", type: "textarea", group: "content", default: "Start free today — no credit card required." },
+        { key: "ctaLabel", label: "Button label", type: "text", group: "content", default: "Get started" },
+        { key: "ctaUrl", label: "Button URL", type: "url", group: "content", default: "#" },
+        { key: "bgImage", label: "Background image (optional)", type: "image", group: "content", default: "" },
+        { key: "align", label: "Alignment", type: "select", group: "layout", default: "center",
+          options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }] },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0d9488" },
+        { key: "textColor", label: "Text colour", type: "color", group: "style", default: "#ffffff" },
+        { key: "buttonColor", label: "Button colour", type: "color", group: "style", default: "#ffffff" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Sign-up CTA", useCase: "Landing page", industry: "SaaS", preset: {} },
+      { name: "Sale Banner", useCase: "Promotion", industry: "E-commerce", preset: { heading: "Mega sale is live", ctaLabel: "Shop now" } },
+    ],
+  },
+
+  // 43 ── Comparison Table ────────────────────────────────────────────────────
+  {
+    key: "comparison",
+    name: "Comparison Table",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "Compare plans or products across features in a clean matrix.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Compare plans" },
+        { key: "col1", label: "Column 1 header", type: "text", group: "content", default: "Starter" },
+        { key: "col2", label: "Column 2 header", type: "text", group: "content", default: "Pro" },
+        { key: "col3", label: "Column 3 header", type: "text", group: "content", default: "Agency" },
+        {
+          key: "rows", label: "Rows", type: "list", group: "content", addLabel: "Add row",
+          default: [
+            { feature: "Widgets", v1: "1", v2: "Unlimited", v3: "Unlimited" },
+            { feature: "Remove branding", v1: "no", v2: "yes", v3: "yes" },
+            { feature: "Priority support", v1: "no", v2: "yes", v3: "yes" },
+            { feature: "Client workspaces", v1: "no", v2: "no", v3: "yes" },
+          ],
+          itemFields: [
+            { key: "feature", label: "Feature", type: "text", group: "content", default: "" },
+            { key: "v1", label: "Column 1 value", type: "text", group: "content", default: "" },
+            { key: "v2", label: "Column 2 value", type: "text", group: "content", default: "" },
+            { key: "v3", label: "Column 3 value", type: "text", group: "content", default: "" },
+          ],
+        },
+        { key: "highlight", label: "Highlight column", type: "select", group: "layout", default: "2",
+          options: [{ value: "0", label: "None" }, { value: "1", label: "Column 1" }, { value: "2", label: "Column 2" }, { value: "3", label: "Column 3" }] },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Plan Comparison", useCase: "Pricing page", industry: "SaaS", preset: {} },
+      { name: "Product Compare", useCase: "Store", industry: "E-commerce", preset: { col1: "Basic", col2: "Plus", col3: "Max" } },
+    ],
+  },
+
+  // 44 ── Share Buttons ───────────────────────────────────────────────────────
+  {
+    key: "socialshare",
+    name: "Share Buttons",
+    categorySlug: "marketing",
+    badges: ["Marketing"],
+    description: "Let visitors share your page to social networks in one click.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "heading", label: "Heading", type: "text", group: "content", default: "Share this" },
+        { key: "shareUrl", label: "URL to share (blank = current page)", type: "url", group: "content", default: "" },
+        { key: "shareText", label: "Share text", type: "text", group: "content", default: "Check this out!" },
+        {
+          key: "networks", label: "Networks", type: "list", group: "content", addLabel: "Add network",
+          default: [{ network: "facebook" }, { network: "twitter" }, { network: "linkedin" }, { network: "whatsapp" }, { network: "telegram" }, { network: "email" }, { network: "copy" }],
+          itemFields: [
+            { key: "network", label: "Network", type: "select", group: "content", default: "facebook",
+              options: [
+                { value: "facebook", label: "Facebook" }, { value: "twitter", label: "X / Twitter" }, { value: "linkedin", label: "LinkedIn" },
+                { value: "whatsapp", label: "WhatsApp" }, { value: "telegram", label: "Telegram" }, { value: "email", label: "Email" },
+                { value: "pinterest", label: "Pinterest" }, { value: "reddit", label: "Reddit" }, { value: "copy", label: "Copy link" },
+              ] },
+          ],
+        },
+        { key: "shape", label: "Shape", type: "select", group: "layout", default: "circle",
+          options: [{ value: "circle", label: "Circle" }, { value: "square", label: "Rounded square" }] },
+        { key: "size", label: "Icon size (px)", type: "number", group: "layout", default: 44, min: 28, max: 64 },
+        { key: "align", label: "Alignment", type: "select", group: "layout", default: "left",
+          options: [{ value: "left", label: "Left" }, { value: "center", label: "Center" }] },
+        { key: "colorStyle", label: "Colour style", type: "select", group: "style", default: "brand",
+          options: [{ value: "brand", label: "Brand colours" }, { value: "mono", label: "Monochrome" }] },
+        { key: "monoColor", label: "Monochrome colour", type: "color", group: "style", default: "#0f172a" },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Blog Share", useCase: "Article pages", industry: "Content", preset: {} },
+      { name: "Product Share", useCase: "Store", industry: "E-commerce", preset: { shape: "square" } },
+    ],
+  },
+
+  // 45 ── Audio Player ────────────────────────────────────────────────────────
+  {
+    key: "audio",
+    name: "Audio Player",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "A clean audio player for podcasts, music, or voice notes.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "title", label: "Title", type: "text", group: "content", default: "Episode 1 — Getting started" },
+        { key: "artist", label: "Subtitle / artist", type: "text", group: "content", default: "The Growth Podcast" },
+        { key: "audioUrl", label: "Audio file URL (mp3)", type: "url", group: "content", default: "" },
+        { key: "artwork", label: "Artwork image", type: "image", group: "content", default: "" },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0f172a" },
+        { key: "loop", label: "Loop", type: "toggle", group: "behaviour", default: false },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Podcast Episode", useCase: "Podcast page", industry: "Media", preset: {} },
+      { name: "Music Track", useCase: "Artist site", industry: "Music", preset: {} },
+    ],
+  },
+
+  // 46 ── Image Hotspots ──────────────────────────────────────────────────────
+  {
+    key: "imagehotspots",
+    name: "Image Hotspots",
+    categorySlug: "content",
+    badges: ["Content"],
+    description: "Add interactive pins to an image that reveal details on tap.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "image", label: "Image", type: "image", group: "content", default: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1200" },
+        {
+          key: "points", label: "Hotspots", type: "list", group: "content", addLabel: "Add hotspot",
+          default: [
+            { x: 30, y: 40, title: "Feature one", text: "Describe what this part does." },
+            { x: 65, y: 60, title: "Feature two", text: "Add detail for this hotspot." },
+          ],
+          itemFields: [
+            { key: "x", label: "X position (%)", type: "number", group: "content", default: 50, min: 0, max: 100 },
+            { key: "y", label: "Y position (%)", type: "number", group: "content", default: 50, min: 0, max: 100 },
+            { key: "title", label: "Title", type: "text", group: "content", default: "" },
+            { key: "text", label: "Text", type: "textarea", group: "content", default: "" },
+          ],
+        },
+        { key: "pinColor", label: "Pin colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Product Tour", useCase: "Product page", industry: "E-commerce", preset: {} },
+      { name: "Diagram", useCase: "Explainer", industry: "General", preset: {} },
+    ],
+  },
+
+  // 47 ── Rating Badge ────────────────────────────────────────────────────────
+  {
+    key: "rating",
+    name: "Rating Badge",
+    categorySlug: "social-proof",
+    badges: ["Social Proof"],
+    description: "Display an average star rating and review count as a trust badge.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "rating", label: "Rating (0–5)", type: "number", group: "content", default: 4.8, min: 0, max: 5 },
+        { key: "count", label: "Number of reviews", type: "number", group: "content", default: 1240, min: 0 },
+        { key: "label", label: "Label", type: "text", group: "content", default: "Rated by our customers" },
+        { key: "source", label: "Source (optional)", type: "text", group: "content", default: "" },
+        { key: "layout", label: "Layout", type: "select", group: "layout", default: "card",
+          options: [{ value: "card", label: "Card" }, { value: "inline", label: "Inline badge" }] },
+        { key: "starColor", label: "Star colour", type: "color", group: "style", default: "#f59e0b" },
+        { key: "showCount", label: "Show review count", type: "toggle", group: "behaviour", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Trust Badge", useCase: "Product page", industry: "E-commerce", preset: {} },
+      { name: "Inline Rating", useCase: "Header", industry: "General", preset: { layout: "inline" } },
+    ],
+  },
+
+  // 48 ── Contact Card ────────────────────────────────────────────────────────
+  {
+    key: "contactcard",
+    name: "Contact Card",
+    categorySlug: "contact-chat",
+    badges: ["No-code"],
+    description: "A tidy business card with call, email, and directions buttons.",
+    isAi: false,
+    schema: {
+      tabs: [TABS.content, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "name", label: "Name", type: "text", group: "content", default: "Priya Sharma" },
+        { key: "role", label: "Role", type: "text", group: "content", default: "Customer Success Lead" },
+        { key: "company", label: "Company", type: "text", group: "content", default: "Acme Co." },
+        { key: "avatar", label: "Photo", type: "image", group: "content", default: "" },
+        { key: "phone", label: "Phone", type: "tel", group: "content", default: "" },
+        { key: "email", label: "Email", type: "email", group: "content", default: "" },
+        { key: "address", label: "Address", type: "text", group: "content", default: "" },
+        { key: "website", label: "Website", type: "url", group: "content", default: "" },
+        { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "rounded", label: "Rounded corners", type: "toggle", group: "style", default: true },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Team Member", useCase: "About page", industry: "General", preset: {} },
+      { name: "Store Contact", useCase: "Contact page", industry: "Retail", preset: {} },
+    ],
+  },
+
+  // 49 ── AI Assistant (Chatbot) ──────────────────────────────────────────────
+  {
+    key: "chatbot",
+    name: "AI Assistant",
+    categorySlug: "contact-chat",
+    badges: ["New", "AI"],
+    description: "A floating chat assistant that answers visitor questions from your own knowledge base — powered by AI you can train.",
+    isAi: true,
+    schema: {
+      tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
+      fields: [
+        { key: "botName", label: "Assistant name", type: "text", group: "content", default: "Assistant" },
+        { key: "welcomeMessage", label: "Welcome message", type: "textarea", group: "content", default: "Hi 👋 I'm here to help. Ask me anything about our products, shipping, or returns." },
+        { key: "inputPlaceholder", label: "Input placeholder", type: "text", group: "content", default: "Type your message…" },
+        { key: "businessInfo", label: "About your business (AI context)", type: "textarea", group: "content", default: "We are an online store offering quality products with fast shipping across India and friendly customer support.", help: "The assistant uses this plus the Q&A below to answer. This is your training data — expand it any time." },
+        {
+          key: "knowledge", label: "Knowledge base (Q&A)", type: "list", group: "content", addLabel: "Add Q&A",
+          default: [
+            { question: "What are your shipping times?", answer: "We ship within 24 hours and delivery usually takes 3–5 business days across India." },
+            { question: "What is your return policy?", answer: "You can return any item within 30 days for a full refund." },
+            { question: "How do I track my order?", answer: "You'll receive a tracking link by SMS and email as soon as your order ships." },
+            { question: "Do you offer cash on delivery?", answer: "Yes, cash on delivery is available on most orders." },
+          ],
+          itemFields: [
+            { key: "question", label: "Question", type: "text", group: "content", default: "" },
+            { key: "answer", label: "Answer", type: "textarea", group: "content", default: "" },
+          ],
+        },
+        {
+          key: "suggestions", label: "Quick replies", type: "list", group: "content", addLabel: "Add quick reply",
+          default: [{ text: "Shipping times" }, { text: "Return policy" }, { text: "Track my order" }],
+          itemFields: [{ key: "text", label: "Text", type: "text", group: "content", default: "" }],
+        },
+        { key: "fallbackMessage", label: "Fallback reply", type: "textarea", group: "content", default: "I'm not fully sure about that — let me connect you with our team. You can also drop us a message and we'll reply shortly." },
+        { key: "position", label: "Position", type: "select", group: "layout", default: "bottom-right",
+          options: [{ value: "bottom-right", label: "Bottom right" }, { value: "bottom-left", label: "Bottom left" }] },
+        { key: "launcherLabel", label: "Launcher label (optional)", type: "text", group: "layout", default: "Chat with us" },
+        { key: "launcherIcon", label: "Launcher icon (emoji)", type: "text", group: "style", default: "💬" },
+        { key: "avatar", label: "Assistant avatar", type: "image", group: "style", default: "" },
+        { key: "primaryColor", label: "Primary colour", type: "color", group: "style", default: "#0d9488" },
+        { key: "aiEnabled", label: "Use AI (DeepSeek)", type: "toggle", group: "behaviour", default: true, help: "When on, replies are generated by AI from your knowledge base. When off (or no AI key configured), the assistant answers from the Q&A above." },
+        { key: "openByDefault", label: "Open on load", type: "toggle", group: "behaviour", default: false },
+      ],
+    },
+    defaultConfig: {},
+    templates: [
+      { name: "Support Assistant", useCase: "Customer support", industry: "E-commerce", preset: {} },
+      { name: "Sales Helper", useCase: "Lead capture", industry: "Services", preset: { botName: "Sales Assistant", welcomeMessage: "Hi! Looking for the right plan? I can help you decide." } },
+    ],
+  },
 ];
 
 export function toolByKey(key: string): ToolDef | undefined {

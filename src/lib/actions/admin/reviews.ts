@@ -15,6 +15,7 @@ const testimonialSchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
   body: z.string().trim().min(1, "Enter the review body").max(2000),
   sortOrder: z.coerce.number().int().min(0).default(0),
+  toolKey: z.string().trim().max(60).optional().or(z.literal("")),
 });
 
 export async function saveTestimonialAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -30,6 +31,7 @@ export async function saveTestimonialAction(_prev: ActionState, formData: FormDa
     rating: d.rating,
     body: d.body,
     sortOrder: d.sortOrder,
+    toolKey: d.toolKey || null,
   };
 
   if (d.testimonialId) {
@@ -44,6 +46,8 @@ export async function saveTestimonialAction(_prev: ActionState, formData: FormDa
       summary: `Updated testimonial by ${d.authorName}`,
     });
     revalidatePath("/admin/reviews");
+    // Refresh the tool landing page(s) the review moved between.
+    for (const k of new Set([before.toolKey, data.toolKey].filter(Boolean))) revalidatePath(`/tools/${k}`);
     return succeed("Testimonial saved.");
   }
 
@@ -56,6 +60,7 @@ export async function saveTestimonialAction(_prev: ActionState, formData: FormDa
     summary: `Created testimonial by ${d.authorName}`,
   });
   revalidatePath("/admin/reviews");
+  if (data.toolKey) revalidatePath(`/tools/${data.toolKey}`);
   return succeed("Testimonial created.");
 }
 

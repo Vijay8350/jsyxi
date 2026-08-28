@@ -41,11 +41,20 @@ export function PricingTable({ plans }: { plans: PricingPlan[] }) {
   return (
     <div>
       {/* Billing toggle */}
-      <div className="flex items-center justify-center gap-3">
+      <div
+        className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2"
+        role="group"
+        aria-label="Billing frequency"
+      >
         <button
           type="button"
           onClick={() => setYearly(false)}
-          className={cn("text-sm font-medium transition-colors", yearly ? "text-slate-500" : "text-ink")}
+          aria-pressed={!yearly}
+          aria-controls="pricing-plans"
+          className={cn(
+            "rounded-md px-1 py-0.5 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 motion-reduce:transition-none",
+            yearly ? "text-slate-500 hover:text-ink" : "text-ink",
+          )}
         >
           Monthly
         </button>
@@ -53,39 +62,52 @@ export function PricingTable({ plans }: { plans: PricingPlan[] }) {
           type="button"
           role="switch"
           aria-checked={yearly}
-          aria-label="Toggle yearly billing"
+          aria-label="Yearly billing"
+          aria-controls="pricing-plans"
           onClick={() => setYearly((v) => !v)}
           className={cn(
-            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+            "relative inline-flex h-6 w-11 items-center rounded-full transition-[background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 motion-reduce:transition-none",
             yearly ? "bg-brand-600" : "bg-slate-300",
           )}
         >
           <span
+            aria-hidden="true"
             className={cn(
-              "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform",
+              "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ease-out motion-reduce:transition-none",
               yearly ? "translate-x-5" : "translate-x-0.5",
             )}
           />
         </button>
-        <span className={cn("text-sm font-medium transition-colors", yearly ? "text-ink" : "text-slate-500")}>
+        <button
+          type="button"
+          onClick={() => setYearly(true)}
+          aria-pressed={yearly}
+          aria-controls="pricing-plans"
+          className={cn(
+            "rounded-md px-1 py-0.5 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 motion-reduce:transition-none",
+            yearly ? "text-ink" : "text-slate-500 hover:text-ink",
+          )}
+        >
           Yearly
           <span className="ml-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
             2 months free
           </span>
-        </span>
+        </button>
       </div>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {yearly
+          ? "Yearly billing selected. Prices show monthly equivalents billed yearly."
+          : "Monthly billing selected."}
+      </p>
 
       {/* Plan cards */}
-      <div className="mt-10 grid gap-6 lg:grid-cols-4">
+      <div id="pricing-plans" className="mt-10 grid gap-6 lg:grid-cols-4">
         {plans.map((plan) => {
           const featured = plan.slug === highlight;
           const monthly = plan.priceAmount ?? 0;
           const annual = annualPrice(monthly, plan.annualDiscount);
-          const displayPrice = plan.isFree
-            ? "₹0"
-            : yearly
-              ? inr(Math.round(annual / 12))
-              : inr(monthly);
+          const monthlyDisplay = plan.isFree ? "₹0" : inr(monthly);
+          const yearlyDisplay = plan.isFree ? "₹0" : inr(Math.round(annual / 12));
 
           const rows: { label: string; value: React.ReactNode }[] = [
             { label: "Widgets", value: limitLabel(plan.maxWidgets) },
@@ -101,11 +123,14 @@ export function PricingTable({ plans }: { plans: PricingPlan[] }) {
           ];
 
           return (
-            <div
+            <article
               key={plan.id}
+              aria-labelledby={`pricing-plan-${plan.slug}`}
               className={cn(
-                "relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm",
-                featured ? "border-brand-300 ring-2 ring-brand-100" : "border-line",
+                "relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl focus-within:-translate-y-1 focus-within:shadow-xl motion-reduce:transform-none motion-reduce:transition-none",
+                featured
+                  ? "border-brand-300 shadow-brand-600/10 ring-2 ring-brand-100 hover:shadow-brand-600/15"
+                  : "border-line hover:border-brand-200 hover:shadow-slate-200/70",
               )}
             >
               {featured && (
@@ -113,23 +138,42 @@ export function PricingTable({ plans }: { plans: PricingPlan[] }) {
                   Most popular
                 </Badge>
               )}
-              <h3 className="text-lg font-bold text-ink">{plan.name}</h3>
+              <h3 id={`pricing-plan-${plan.slug}`} className="text-lg font-bold text-ink">
+                {plan.name}
+              </h3>
               <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold tracking-tight text-ink">{displayPrice}</span>
+                <AnimatedValue monthly={monthlyDisplay} yearly={yearlyDisplay} showYearly={yearly} />
                 {!plan.isFree && <span className="text-sm text-slate-500">/mo</span>}
               </div>
-              <p className="mt-1 h-4 text-xs text-slate-500">
-                {plan.isFree
-                  ? "Free forever"
-                  : yearly
-                    ? `${inr(annual)} billed yearly`
-                    : "Billed monthly · incl. GST"}
-              </p>
+              {plan.isFree ? (
+                <p className="mt-1 h-4 text-xs text-slate-500">Free forever</p>
+              ) : (
+                <p className="mt-1 grid h-4 text-xs text-slate-500">
+                  <span
+                    aria-hidden={yearly}
+                    className={cn(
+                      "[grid-area:1/1] transition-[opacity,transform] duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none",
+                      yearly ? "-translate-y-1 opacity-0" : "translate-y-0 opacity-100",
+                    )}
+                  >
+                    Billed monthly · incl. GST
+                  </span>
+                  <span
+                    aria-hidden={!yearly}
+                    className={cn(
+                      "[grid-area:1/1] transition-[opacity,transform] duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none",
+                      yearly ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0",
+                    )}
+                  >
+                    {inr(annual)} billed yearly
+                  </span>
+                </p>
+              )}
 
               <ButtonLink
                 href="/signup"
                 variant={featured ? "primary" : "secondary"}
-                className="mt-5 w-full"
+                className="mt-5 w-full motion-reduce:transform-none motion-reduce:transition-none"
               >
                 {plan.isFree ? "Get started free" : "Choose " + plan.name}
               </ButtonLink>
@@ -144,17 +188,21 @@ export function PricingTable({ plans }: { plans: PricingPlan[] }) {
               </dl>
               <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
                 {flags.map((f) => (
-                  <li key={f.label} className={cn("flex items-center gap-2", f.on ? "text-slate-700" : "text-slate-400")}>
+                  <li
+                    key={f.label}
+                    aria-label={`${f.label}: ${f.on ? "included" : "not included"}`}
+                    className={cn("flex items-center gap-2", f.on ? "text-slate-700" : "text-slate-400")}
+                  >
                     {f.on ? (
-                      <Check className="h-4 w-4 shrink-0 text-emerald-500" />
+                      <Check className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
                     ) : (
-                      <Minus className="h-4 w-4 shrink-0 text-slate-300" />
+                      <Minus className="h-4 w-4 shrink-0 text-slate-300" aria-hidden="true" />
                     )}
                     {f.label}
                   </li>
                 ))}
               </ul>
-            </div>
+            </article>
           );
         })}
       </div>
@@ -162,5 +210,42 @@ export function PricingTable({ plans }: { plans: PricingPlan[] }) {
         All prices are in INR and inclusive of 18% GST. Upgrades are activated in-app after signup — no public checkout.
       </p>
     </div>
+  );
+}
+
+function AnimatedValue({
+  monthly,
+  yearly,
+  showYearly,
+}: {
+  monthly: string;
+  yearly: string;
+  showYearly: boolean;
+}) {
+  if (monthly === yearly) {
+    return <span className="text-4xl font-extrabold tracking-tight text-ink">{monthly}</span>;
+  }
+
+  return (
+    <span className="grid text-4xl font-extrabold tracking-tight text-ink">
+      <span
+        aria-hidden={showYearly}
+        className={cn(
+          "[grid-area:1/1] transition-[opacity,transform] duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none",
+          showYearly ? "-translate-y-1.5 opacity-0" : "translate-y-0 opacity-100",
+        )}
+      >
+        {monthly}
+      </span>
+      <span
+        aria-hidden={!showYearly}
+        className={cn(
+          "[grid-area:1/1] transition-[opacity,transform] duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none",
+          showYearly ? "translate-y-0 opacity-100" : "translate-y-1.5 opacity-0",
+        )}
+      >
+        {yearly}
+      </span>
+    </span>
   );
 }
