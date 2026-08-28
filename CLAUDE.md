@@ -20,6 +20,7 @@ Stack: Next.js 16 (App Router, `output: "standalone"`) · React 19 · TypeScript
 - `npm run db:migrate` (create+apply a dev migration) · `db:seed` (catalog/plans/staff/demo) · `db:reset` (drop+migrate+seed) · `db:studio`
 - Postgres must be running; DB `jsyxi`, `DATABASE_URL` in `.env`.
 - Seeded logins: customer `demo@jsyxi.local` / `jsyxi-demo` → `/app`; staff `admin@jsyxi.local` / `jsyxi-admin` → `/admin` (other staff `marketing@`/`sales@`/`support@`/`content@`/`finance@` share `jsyxi-admin`, each scoped to their role's sections).
+- `npm run content:generate-blog-art` — re-render `public/blog-covers/<slug>.webp` + `public/blog-figures/<slug>.webp` from the `art` spec on each post in `prisma/blog-library-*.ts` (sharp rasterises generated SVG; deterministic per slug). Run it after adding a post, then `npm run content:publish-blogs`.
 - **Seed BEFORE build** when the tool catalog/categories change: `/tools`, the home grid, and `/tools/[key]` are statically prerendered from the DB at build time.
 
 ## Architecture

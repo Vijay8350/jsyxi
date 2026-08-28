@@ -99,3 +99,83 @@ export function caseStudyClusterLabel(slug: string): string {
       return "Software and operations";
   }
 }
+
+/* ------------------------------------------------------------------- blog */
+
+export const BLOG_SECTION_URL = `${SITE_URL}/blog`;
+const WORDS_PER_MINUTE = 220;
+
+export function blogPageUrl(slug: string): string {
+  return `${SITE_URL}/blog/${encodeURIComponent(slug)}`;
+}
+
+export function readingTimeMinutes(body: string): number {
+  return Math.max(1, Math.round(contentWordCount(body) / WORDS_PER_MINUTE));
+}
+
+export function blogSeoDescription(
+  excerpt: string | null | undefined,
+  body: string,
+): string {
+  const source = (excerpt ?? body).replace(/[#*>`_]/g, " ").replace(/\s+/g, " ").trim();
+  return truncateAtWord(source, 160);
+}
+
+export type FaqEntry = { question: string; answer: string };
+
+const FAQ_HEADING = /^##\s+frequently asked questions\s*$/i;
+
+/**
+ * Pulls the visible "Frequently asked questions" Q&A pairs out of a Markdown
+ * body so they can be emitted as FAQPage structured data. Only content that is
+ * actually rendered on the page is returned — marking up anything else would
+ * violate Google's structured-data guidelines.
+ */
+export function extractFaqEntries(body: string): FaqEntry[] {
+  const blocks = body
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  const start = blocks.findIndex((block) => FAQ_HEADING.test(block.split("\n")[0]));
+  if (start === -1) return [];
+
+  const entries: FaqEntry[] = [];
+  let question: string | null = null;
+  let answer: string[] = [];
+
+  const flush = () => {
+    if (question && answer.length > 0) {
+      entries.push({ question, answer: answer.join(" ") });
+    }
+    question = null;
+    answer = [];
+  };
+
+  for (const block of blocks.slice(start + 1)) {
+    if (block.startsWith("## ")) break; // next top-level section ends the FAQ
+    if (block.startsWith("### ")) {
+      flush();
+      question = plainText(block.slice(4));
+      continue;
+    }
+    if (question) answer.push(plainText(block));
+  }
+  flush();
+
+  return entries.filter((entry) => entry.question.length > 0 && entry.answer.length > 0);
+}
+
+// Strip the inline Markdown a rendered answer would not show as syntax.
+function plainText(value: string): string {
+  return value
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^\s*[-*]\s+/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}

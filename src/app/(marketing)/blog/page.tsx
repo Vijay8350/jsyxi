@@ -7,11 +7,29 @@ import { ButtonLink } from "@/components/ui/button";
 import { PageHero, DualCta } from "@/components/marketing/sections";
 import { ContentCover } from "@/components/marketing/content-cover";
 import { Reveal } from "@/components/marketing/reveal";
+import { JsonLd } from "@/components/seo/json-ld";
+import {
+  BLOG_SECTION_URL,
+  ORGANIZATION_ID,
+  SITE_NAME,
+  SITE_URL,
+  WEBSITE_ID,
+  blogPageUrl,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Blog",
   description:
     "Practical guides on no-code growth: reviews, lead-gen, popups, countdowns, and conversion tips for online businesses.",
+  alternates: { canonical: "/blog" },
+  openGraph: {
+    type: "website",
+    title: `Blog · ${SITE_NAME}`,
+    description:
+      "Practical guides on no-code growth: reviews, lead-gen, popups, countdowns, and conversion tips for online businesses.",
+    url: "/blog",
+    siteName: SITE_NAME,
+  },
 };
 
 // ISR safety-net: refresh at most every 5 min. Publishing from admin also purges this
@@ -32,8 +50,51 @@ export default async function BlogPage() {
 
   const [featured, ...rest] = posts;
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Organization", "@id": ORGANIZATION_ID, name: SITE_NAME, url: SITE_URL },
+      {
+        "@type": "WebSite",
+        "@id": WEBSITE_ID,
+        name: SITE_NAME,
+        url: SITE_URL,
+        publisher: { "@id": ORGANIZATION_ID },
+      },
+      {
+        "@type": "Blog",
+        "@id": `${BLOG_SECTION_URL}#blog`,
+        url: BLOG_SECTION_URL,
+        name: `${SITE_NAME} blog`,
+        description:
+          "Practical guides on no-code growth: reviews, lead-gen, popups, countdowns, and conversion tips for online businesses.",
+        inLanguage: "en-IN",
+        isPartOf: { "@id": WEBSITE_ID },
+        publisher: { "@id": ORGANIZATION_ID },
+        blogPost: posts.slice(0, 20).map((p) => ({
+          "@type": "BlogPosting",
+          "@id": `${blogPageUrl(p.slug)}#article`,
+          url: blogPageUrl(p.slug),
+          headline: p.title,
+          ...(p.excerpt ? { description: p.excerpt } : {}),
+          ...(p.publishedAt ? { datePublished: p.publishedAt.toISOString() } : {}),
+          dateModified: p.updatedAt.toISOString(),
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${BLOG_SECTION_URL}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Blog", item: BLOG_SECTION_URL },
+        ],
+      },
+    ],
+  };
+
   return (
     <>
+      <JsonLd id="blog-index-json-ld" data={structuredData} />
       <PageHero
         badge="From the jsyxi team"
         title="No-code growth,"
