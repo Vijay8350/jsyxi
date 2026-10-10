@@ -1845,56 +1845,76 @@ export function renderWidget(toolKey: string, config: Cfg, opts: RenderOpts): Re
         <button class="jw-cbot-launch" aria-label="Open chat" style="background:${primary}">
           <span class="jw-cbot-launch-ic">${esc(icon)}</span>
           ${config.launcherLabel ? `<span class="jw-cbot-launch-lbl">${esc(config.launcherLabel)}</span>` : ""}
+          <span class="jw-cbot-badge">1</span>
         </button>
         <div class="jw-cbot-panel" hidden>
           <div class="jw-cbot-head" style="background:${primary}">
             ${av}
-            <div class="jw-cbot-hid"><b>${name}</b><em>${ai ? "AI Assistant" : "We're here to help"}</em></div>
+            <div class="jw-cbot-hid"><b>${name}</b><em><i class="jw-cbot-status"></i>${ai ? "AI Assistant · online" : "We're here to help"}</em></div>
             <button class="jw-cbot-close" aria-label="Close chat">&times;</button>
           </div>
           <div class="jw-cbot-msgs"><div class="jw-cbot-msg jw-cbot-bot">${esc(config.welcomeMessage)}</div></div>
           ${sugs ? `<div class="jw-cbot-sugs">${sugs}</div>` : ""}
           <form class="jw-cbot-input">
             <input type="text" placeholder="${esc(config.inputPlaceholder || "Type your message…")}" autocomplete="off"/>
-            <button type="submit" aria-label="Send" style="color:${primary}"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M3 20.5v-6l8-2.5-8-2.5v-6l19 8.5z"/></svg></button>
+            <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 20.5v-6l8-2.5-8-2.5v-6l19 8.5z"/></svg></button>
           </form>
           ${brand}
         </div>
       </div>`;
       const side = pos === "left" ? "left:20px" : "right:20px";
+      const origin = pos === "left" ? "bottom left" : "bottom right";
       const css = `
         ${r} .jw-cbot{font-family:inherit}
-        ${r} .jw-cbot-launch{position:fixed;bottom:20px;${side};z-index:2147482000;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;color:#fff;padding:0 20px 0 0;height:58px;cursor:pointer;box-shadow:0 12px 30px -6px rgba(0,0,0,.4);transition:transform .15s}
-        ${r} .jw-cbot-launch:hover{transform:translateY(-2px)}
-        ${r} .jw-cbot-launch-ic{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;font-size:26px}
-        ${r} .jw-cbot-launch-lbl{font-weight:600;font-size:15px;white-space:nowrap}
-        ${r} .jw-cbot.jw-cbot-open .jw-cbot-launch{display:none}
-        ${r} .jw-cbot-panel{position:fixed;bottom:20px;${side};z-index:2147482001;width:370px;max-width:calc(100vw - 40px);height:540px;max-height:calc(100vh - 40px);background:#fff;border-radius:18px;box-shadow:0 24px 60px -12px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden}
+        ${r} .jw-cbot-launch{position:fixed;bottom:20px;${side};z-index:2147482000;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;color:#fff;padding:0 20px 0 0;height:60px;cursor:pointer;box-shadow:0 14px 34px -8px rgba(0,0,0,.5),0 4px 10px rgba(0,0,0,.2);background-image:linear-gradient(135deg,rgba(255,255,255,.16),rgba(0,0,0,.12));transition:transform .25s cubic-bezier(.34,1.5,.5,1),opacity .25s,box-shadow .25s;animation:jw-cbot-pop .6s cubic-bezier(.34,1.56,.5,1) backwards}
+        ${r} .jw-cbot-launch:before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;animation:jw-cbot-ring 2.8s ease-out infinite}
+        ${r} .jw-cbot-launch:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 20px 42px -8px rgba(0,0,0,.55)}
+        ${r} .jw-cbot-launch:active{transform:translateY(-1px) scale(.98)}
+        ${r} .jw-cbot-launch-ic{display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;font-size:27px;animation:jw-cbot-bob 3.2s ease-in-out infinite}
+        ${r} .jw-cbot-launch-lbl{font-weight:600;font-size:15px;white-space:nowrap;padding-left:2px}
+        ${r} .jw-cbot-badge{position:absolute;top:-3px;right:-3px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:jw-cbot-badgein .5s .7s backwards;transition:opacity .2s,transform .2s}
+        ${r} .jw-cbot.jw-cbot-open .jw-cbot-launch{opacity:0;transform:scale(.4) translateY(14px);pointer-events:none}
+        ${r} .jw-cbot.jw-cbot-open .jw-cbot-badge{opacity:0;transform:scale(0)}
+        ${r} .jw-cbot-panel{position:fixed;bottom:20px;${side};z-index:2147482001;width:376px;max-width:calc(100vw - 32px);height:560px;max-height:calc(100vh - 40px);background:#fff;border-radius:20px;box-shadow:0 30px 70px -15px rgba(0,0,0,.5),0 8px 24px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;transform-origin:${origin};opacity:0;transform:translateY(20px) scale(.92);transition:opacity .25s ease,transform .32s cubic-bezier(.34,1.4,.4,1);pointer-events:none}
         ${r} .jw-cbot-panel[hidden]{display:none}
-        ${r} .jw-cbot-head{display:flex;align-items:center;gap:10px;padding:14px 16px;color:#fff}
-        ${r} .jw-cbot-av{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none}
-        ${r} .jw-cbot-av-ic{display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,.22)}
-        ${r} .jw-cbot-hid{flex:1;min-width:0;line-height:1.25}
-        ${r} .jw-cbot-hid b{display:block;font-size:15px}
-        ${r} .jw-cbot-hid em{font-style:normal;font-size:12px;opacity:.85}
-        ${r} .jw-cbot-close{background:transparent;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer;opacity:.9}
-        ${r} .jw-cbot-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f8fafc}
-        ${r} .jw-cbot-msg{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
-        ${r} .jw-cbot-bot{align-self:flex-start;background:#fff;border:1px solid #e5e7eb;color:#334155;border-bottom-left-radius:4px}
-        ${r} .jw-cbot-user{align-self:flex-end;background:${primary};color:#fff;border-bottom-right-radius:4px}
-        ${r} .jw-cbot-typing{display:flex;gap:4px;align-items:center;min-width:44px}
+        ${r} .jw-cbot.jw-cbot-open .jw-cbot-panel{opacity:1;transform:none;pointer-events:auto}
+        ${r} .jw-cbot-head{display:flex;align-items:center;gap:11px;padding:15px 16px;color:#fff;background-image:linear-gradient(135deg,rgba(255,255,255,.15),rgba(0,0,0,.12))}
+        ${r} .jw-cbot-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+        ${r} .jw-cbot-av-ic{display:flex;align-items:center;justify-content:center;font-size:21px;background:rgba(255,255,255,.22)}
+        ${r} .jw-cbot-hid{flex:1;min-width:0;line-height:1.3}
+        ${r} .jw-cbot-hid b{display:block;font-size:15px;font-weight:700}
+        ${r} .jw-cbot-hid em{font-style:normal;font-size:12px;opacity:.9;display:flex;align-items:center}
+        ${r} .jw-cbot-status{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:6px;flex:none;animation:jw-cbot-live 2s infinite}
+        ${r} .jw-cbot-close{background:transparent;border:0;color:#fff;font-size:24px;line-height:1;cursor:pointer;opacity:.85;width:30px;height:30px;border-radius:9px;transition:opacity .15s,transform .2s,background .15s}
+        ${r} .jw-cbot-close:hover{opacity:1;background:rgba(255,255,255,.18);transform:rotate(90deg)}
+        ${r} .jw-cbot-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:linear-gradient(#f8fafc,#eef2f7);scroll-behavior:smooth}
+        ${r} .jw-cbot-msgs::-webkit-scrollbar{width:6px}
+        ${r} .jw-cbot-msgs::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+        ${r} .jw-cbot-msg{max-width:84%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word;animation:jw-cbot-msgin .34s cubic-bezier(.2,.8,.2,1) backwards}
+        ${r} .jw-cbot-bot{align-self:flex-start;background:#fff;border:1px solid #e8edf2;color:#334155;border-bottom-left-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+        ${r} .jw-cbot-user{align-self:flex-end;background:${primary};color:#fff;border-bottom-right-radius:5px;box-shadow:0 4px 12px -4px ${primary}99;background-image:linear-gradient(135deg,rgba(255,255,255,.14),rgba(0,0,0,.06))}
+        ${r} .jw-cbot-typing{display:flex;gap:4px;align-items:center;min-width:46px}
         ${r} .jw-cbot-typing span{width:7px;height:7px;border-radius:50%;background:#cbd5e1;display:inline-block;animation:jw-cbot-bounce 1.2s infinite}
         ${r} .jw-cbot-typing span:nth-child(2){animation-delay:.2s}
         ${r} .jw-cbot-typing span:nth-child(3){animation-delay:.4s}
-        @keyframes jw-cbot-bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
-        ${r} .jw-cbot-sugs{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px;background:#f8fafc}
-        ${r} .jw-cbot-sug{border:1px solid ${primary}55;background:#fff;color:${primary};border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;transition:background .15s}
-        ${r} .jw-cbot-sug:hover{background:${primary}14}
-        ${r} .jw-cbot-input{display:flex;align-items:center;gap:6px;padding:8px 12px;border-top:1px solid #e5e7eb;background:#fff}
-        ${r} .jw-cbot-input input{flex:1;border:0;outline:none;font-size:14px;padding:8px;background:transparent;color:#0f172a}
-        ${r} .jw-cbot-input button{background:transparent;border:0;cursor:pointer;display:inline-flex;padding:4px}
+        ${r} .jw-cbot-sugs{display:flex;flex-wrap:wrap;gap:7px;padding:0 16px 12px;background:#eef2f7}
+        ${r} .jw-cbot-sug{border:1px solid ${primary}55;background:#fff;color:${primary};border-radius:999px;padding:7px 13px;font-size:13px;font-weight:500;cursor:pointer;transition:transform .15s,background .15s,color .15s,box-shadow .15s}
+        ${r} .jw-cbot-sug:hover{background:${primary};color:#fff;transform:translateY(-2px);box-shadow:0 6px 14px -4px ${primary}88}
+        ${r} .jw-cbot-input{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid #eef2f6;background:#fff}
+        ${r} .jw-cbot-input input{flex:1;border:1px solid #e5e7eb;border-radius:999px;outline:none;font-size:14px;padding:10px 14px;background:#f8fafc;color:#0f172a;transition:border-color .15s,background .15s,box-shadow .15s}
+        ${r} .jw-cbot-input input:focus{border-color:${primary};background:#fff;box-shadow:0 0 0 3px ${primary}22}
+        ${r} .jw-cbot-input button{flex:none;width:40px;height:40px;border-radius:50%;background:${primary};color:#fff;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 12px -3px ${primary}99;transition:transform .15s,box-shadow .15s}
+        ${r} .jw-cbot-input button:hover{transform:scale(1.09)}
+        ${r} .jw-cbot-input button:active{transform:scale(.93)}
         ${r} .jw-cbot-panel .jw-brand{text-align:center;font-size:11px;padding:6px 0;background:#fff}
-        ${r} .jw-cbot-panel .jw-brand a{color:#94a3b8;text-decoration:none}`;
+        ${r} .jw-cbot-panel .jw-brand a{color:#94a3b8;text-decoration:none}
+        @keyframes jw-cbot-pop{0%{opacity:0;transform:scale(.3) translateY(16px)}100%{opacity:1;transform:none}}
+        @keyframes jw-cbot-ring{0%{box-shadow:0 0 0 0 ${primary}59}70%{box-shadow:0 0 0 16px ${primary}00}100%{box-shadow:0 0 0 0 ${primary}00}}
+        @keyframes jw-cbot-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+        @keyframes jw-cbot-badgein{0%{opacity:0;transform:scale(0)}60%{transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}
+        @keyframes jw-cbot-live{0%{box-shadow:0 0 0 0 rgba(74,222,128,.7)}70%{box-shadow:0 0 0 6px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+        @keyframes jw-cbot-msgin{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+        @keyframes jw-cbot-bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}`;
       return { mode: "overlay", html, css };
     }
 

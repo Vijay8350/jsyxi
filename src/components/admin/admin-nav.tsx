@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import {
   LayoutDashboard, Building2, Blocks, CreditCard, Users, FileText, Newspaper, Star,
-  LifeBuoy, ShieldCheck, Settings, ScrollText, LogOut, ChevronUp, Briefcase,
+  LifeBuoy, ShieldCheck, Settings, ScrollText, LogOut, ChevronUp, Briefcase, BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminSection } from "@/lib/permissions";
@@ -19,6 +19,7 @@ const SECTION_META: Record<AdminSection, { href: string; label: string; icon: ty
   leads: { href: "/admin/leads", label: "Leads / CRM", icon: Users },
   invoices: { href: "/admin/invoices", label: "Invoices", icon: FileText },
   content: { href: "/admin/content", label: "Content", icon: Newspaper },
+  knowledge: { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
   services: { href: "/admin/services", label: "Services", icon: Briefcase },
   reviews: { href: "/admin/reviews", label: "Reviews", icon: Star },
   tickets: { href: "/admin/tickets", label: "Tickets", icon: LifeBuoy },

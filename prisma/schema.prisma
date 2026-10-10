@@ -790,6 +790,24 @@ model SiteTestimonial {
   @@index([toolKey])
 }
 
+// Admin-managed knowledge base powering the site-wide AI assistant (/api/assistant).
+// Retrieval (src/lib/knowledge.ts) picks the most relevant enabled articles per
+// question and feeds only those to DeepSeek, so the KB can grow large without
+// bloating every prompt. Edited at /admin/knowledge — the assistant's "training".
+model KnowledgeArticle {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  category  String?
+  keywords  String? // extra space/comma-separated terms to boost retrieval
+  enabled   Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  @@index([enabled])
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // E24 AuditLogEntry (INV-11, §12)
 // ─────────────────────────────────────────────────────────────────────────────

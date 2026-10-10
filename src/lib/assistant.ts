@@ -10,6 +10,8 @@ export type AssistantKnowledge = {
   botName?: string;
   businessInfo?: string;
   knowledge?: { question: string; answer: string }[];
+  /** Pre-retrieved reference material (e.g. from the admin knowledge base). */
+  knowledgeBase?: string;
 };
 
 export type AssistantResult = { ok: boolean; reply: string; error?: string };
@@ -40,11 +42,12 @@ export async function askAssistant(
     .join("\n\n");
 
   const system = [
-    `You are ${botName}, a friendly and concise assistant embedded on a business website.`,
-    "Answer the visitor using ONLY the business information and Q&A provided below. Keep replies short (1–3 sentences).",
-    "If the answer is not covered, say you are not sure and suggest they contact the team. Never invent facts, prices, or policies.",
+    `You are ${botName}, a friendly, knowledgeable assistant embedded on a business website. You help visitors by answering their questions clearly and genuinely helpfully.`,
+    "Base every answer on the knowledge provided below (business information, Q&A, and reference articles). You may synthesize across multiple entries and explain in your own words, but never invent facts, prices, policies, or features that the knowledge does not support. If something isn't covered, say you're not certain and suggest contacting the team.",
+    "Keep replies concise and conversational — usually 1–4 sentences, warm and natural. When it's genuinely helpful, point the visitor to a relevant next step (such as starting free, the pricing page, or booking a consultation).",
     businessInfo ? `Business information:\n${businessInfo}` : "",
-    knowledge ? `Known Q&A:\n${knowledge}` : "",
+    knowledge ? `Common Q&A:\n${knowledge}` : "",
+    cfg.knowledgeBase ? `Reference articles (most relevant to this question):\n${cfg.knowledgeBase}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -57,7 +60,7 @@ export async function askAssistant(
     const res = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ model: "deepseek-chat", messages, temperature: 0.3, max_tokens: 400, stream: false }),
+      body: JSON.stringify({ model: "deepseek-chat", messages, temperature: 0.35, max_tokens: 500, stream: false }),
       signal: ctrl.signal,
     });
     clearTimeout(timer);

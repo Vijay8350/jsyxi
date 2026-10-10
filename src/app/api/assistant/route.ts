@@ -1,5 +1,6 @@
 import { corsJson, requestOrigin, readBody } from "@/lib/http";
 import { askAssistant, parseHistory } from "@/lib/assistant";
+import { retrieveKnowledge } from "@/lib/knowledge";
 import { SITE_ASSISTANT_CONFIG, SITE_ASSISTANT_FALLBACK } from "@/lib/site-assistant";
 
 const APP_URL = process.env.APP_URL ?? "";
@@ -29,8 +30,16 @@ export async function POST(req: Request) {
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 1000) : "";
   if (!message) return corsJson({ ok: false, reply: SITE_ASSISTANT_FALLBACK, error: "empty" }, 400);
 
+  // Pull the most relevant admin-managed knowledge-base articles for this question.
+  const knowledgeBase = await retrieveKnowledge(message);
+
   const result = await askAssistant(
-    { botName: SITE_ASSISTANT_CONFIG.botName, businessInfo: SITE_ASSISTANT_CONFIG.businessInfo, knowledge: [...SITE_ASSISTANT_CONFIG.knowledge] },
+    {
+      botName: SITE_ASSISTANT_CONFIG.botName,
+      businessInfo: SITE_ASSISTANT_CONFIG.businessInfo,
+      knowledge: [...SITE_ASSISTANT_CONFIG.knowledge],
+      knowledgeBase,
+    },
     message,
     parseHistory(body.history),
     SITE_ASSISTANT_FALLBACK,

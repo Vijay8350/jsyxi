@@ -539,8 +539,8 @@ export const EMBED_RUNTIME_JS = `
     var faq=[]; try{ faq=JSON.parse(wrap.getAttribute('data-faq')||'[]'); }catch(e){}
     var history=[];
     function scrollDown(){ msgs.scrollTop=msgs.scrollHeight; }
-    function open(){ panel.removeAttribute('hidden'); if(wrap.className.indexOf('jw-cbot-open')<0)wrap.className+=' jw-cbot-open'; setTimeout(function(){ try{input.focus()}catch(e){} },60); scrollDown(); }
-    function shut(){ panel.setAttribute('hidden',''); wrap.className=wrap.className.split(' jw-cbot-open').join(''); }
+    function open(){ panel.removeAttribute('hidden'); panel.offsetHeight; if(wrap.className.indexOf('jw-cbot-open')<0)wrap.className+=' jw-cbot-open'; setTimeout(function(){ try{input.focus()}catch(e){} scrollDown(); },300); }
+    function shut(){ wrap.className=wrap.className.split(' jw-cbot-open').join(''); setTimeout(function(){ if(wrap.className.indexOf('jw-cbot-open')<0) panel.setAttribute('hidden',''); },340); }
     if(launch)launch.addEventListener('click',open);
     if(closeb)closeb.addEventListener('click',shut);
     if(wrap.getAttribute('data-open')==='1') open();
