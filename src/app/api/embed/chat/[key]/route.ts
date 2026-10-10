@@ -2,6 +2,7 @@ import { resolveEmbed } from "@/lib/embed";
 import { originAllowed } from "@/lib/metering";
 import { CORS_HEADERS, corsJson, requestOrigin, readBody } from "@/lib/http";
 import { askAssistant, parseHistory } from "@/lib/assistant";
+import { retrieveWidgetKnowledge } from "@/lib/knowledge";
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -33,9 +34,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ key: st
   const knowledge = Array.isArray(cfg.knowledge)
     ? (cfg.knowledge as Record<string, unknown>[]).map((k) => ({ question: String(k.question ?? ""), answer: String(k.answer ?? "") }))
     : [];
+  const knowledgeBaseText = typeof cfg.knowledgeBase === "string" ? cfg.knowledgeBase : "";
+
+  // Retrieve only the most relevant Q&A + knowledge-base paragraphs for this
+  // question, so a widget with a large knowledge base scales without bloating the
+  // prompt. Q&A is sent via knowledgeBase; `knowledge: []` avoids double-sending.
+  const retrieved = retrieveWidgetKnowledge(message, knowledge, knowledgeBaseText);
 
   const result = await askAssistant(
-    { botName: typeof cfg.botName === "string" ? cfg.botName : undefined, businessInfo: typeof cfg.businessInfo === "string" ? cfg.businessInfo : "", knowledge },
+    {
+      botName: typeof cfg.botName === "string" ? cfg.botName : undefined,
+      businessInfo: typeof cfg.businessInfo === "string" ? cfg.businessInfo : "",
+      knowledge: [],
+      knowledgeBase: retrieved,
+    },
     message,
     parseHistory(body.history),
     fallback,

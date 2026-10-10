@@ -1809,6 +1809,7 @@ export const TOOLS: ToolDef[] = [
             { key: "answer", label: "Answer", type: "textarea", group: "content", default: "" },
           ],
         },
+        { key: "knowledgeBase", label: "Knowledge base (detailed info)", type: "textarea", group: "content", default: "Shipping: We ship pan-India within 24 hours. Standard delivery is 3–5 business days; metro cities are often faster. We currently ship only within India.\n\nReturns & refunds: Items can be returned within 30 days of delivery for a full refund, as long as they're unused and in original packaging. Refunds are processed to the original payment method within 5–7 business days.\n\nPayments: We accept UPI, major credit/debit cards, net banking, and cash on delivery (COD) on most orders.\n\nOrder tracking: A tracking link is sent by SMS and email as soon as your order ships. You can reply to that message any time for an update.\n\nContact: Our support team is available Mon–Sat, 10am–7pm IST and typically replies within a few hours.", help: "Paste detailed information (shipping, returns, policies, product details…). The assistant automatically pulls the most relevant parts for each question — so you can add a lot here. One topic per paragraph works best." },
         {
           key: "suggestions", label: "Quick replies", type: "list", group: "content", addLabel: "Add quick reply",
           default: [{ text: "Shipping times" }, { text: "Return policy" }, { text: "Track my order" }],

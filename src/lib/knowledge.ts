@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/db";
 
-// Lightweight keyword retrieval over the admin-managed KnowledgeArticle table.
-// No embeddings/external service: scores each enabled article by how well the
-// question's terms hit its title/keywords/content, then returns the top few as a
-// single context block (char-budgeted) for the DeepSeek prompt. This lets the KB
-// grow large while only the relevant slice is sent per question.
+// Lightweight keyword retrieval shared by the site assistant (DB knowledge base)
+// and the embeddable Chatbot widget (its own Q&A + knowledge-base config). No
+// embeddings/external service: each chunk is scored by how well the question's
+// terms hit its title/keywords/text, then the top few are returned as one
+// char-budgeted context block. Lets a knowledge base grow large while only the
+// relevant slice is sent to DeepSeek per question.
+
+export type KnowledgeChunk = { title?: string; text: string; keywords?: string };
 
 const STOP = new Set([
   "the", "and", "for", "are", "you", "how", "can", "does", "did", "what", "why", "who", "when", "where",
@@ -32,9 +35,44 @@ function countOccurrences(hay: string, term: string, cap: number): number {
 }
 
 /**
- * Return a context string of the most relevant knowledge articles for `question`,
- * capped to ~`charBudget` characters. Empty string when the KB has no entries.
+ * Rank in-memory knowledge chunks against a question and return the most relevant
+ * ones as one context string (capped to ~`charBudget` chars). Pure — no I/O.
  */
+export function rankKnowledge(question: string, chunks: KnowledgeChunk[], limit = 6, charBudget = 6500): string {
+  if (!chunks.length) return "";
+  const terms = tokenize(question);
+  const scored = chunks
+    .map((c) => {
+      const title = (c.title ?? "").toLowerCase();
+      const kw = (c.keywords ?? "").toLowerCase();
+      const body = `${c.title ?? ""} ${c.keywords ?? ""} ${c.text}`.toLowerCase();
+      let score = 0;
+      for (const t of terms) {
+        if (title.includes(t)) score += 4;
+        if (kw.includes(t)) score += 3;
+        score += countOccurrences(body, t, 4);
+      }
+      return { c, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((x, y) => y.score - x.score);
+
+  // No matches → fall back to the first few chunks for general context.
+  const chosen = (scored.length ? scored.map((x) => x.c) : chunks.slice(0, Math.min(limit, 4))).slice(0, limit);
+
+  const blocks: string[] = [];
+  let budget = charBudget;
+  for (const c of chosen) {
+    const block = (c.title ? `### ${c.title}\n${c.text}` : c.text).slice(0, budget);
+    if (!block.trim()) break;
+    blocks.push(block);
+    budget -= block.length;
+    if (budget <= 200) break;
+  }
+  return blocks.join("\n\n");
+}
+
+/** Site assistant: rank the admin-managed KnowledgeArticle table for a question. */
 export async function retrieveKnowledge(question: string, limit = 6, charBudget = 6500): Promise<string> {
   let articles: { title: string; content: string; keywords: string | null }[];
   try {
@@ -46,36 +84,29 @@ export async function retrieveKnowledge(question: string, limit = 6, charBudget 
   } catch {
     return ""; // table missing / DB hiccup → assistant falls back to its base config
   }
-  if (!articles.length) return "";
+  const chunks: KnowledgeChunk[] = articles.map((a) => ({ title: a.title, text: a.content, keywords: a.keywords ?? undefined }));
+  return rankKnowledge(question, chunks, limit, charBudget);
+}
 
-  const terms = tokenize(question);
-  const scored = articles
-    .map((a) => {
-      const title = a.title.toLowerCase();
-      const body = `${a.title} ${a.keywords ?? ""} ${a.content}`.toLowerCase();
-      let score = 0;
-      for (const t of terms) {
-        if (title.includes(t)) score += 4;
-        if ((a.keywords ?? "").toLowerCase().includes(t)) score += 3;
-        score += countOccurrences(body, t, 4);
-      }
-      return { a, score };
-    })
-    .filter((x) => x.score > 0)
-    .sort((x, y) => y.score - x.score);
-
-  // Nothing matched → include the first few articles so the assistant still has
-  // general context (these are typically the most important overview entries).
-  const chosen = (scored.length ? scored.map((x) => x.a) : articles.slice(0, Math.min(limit, 4))).slice(0, limit);
-
-  const blocks: string[] = [];
-  let budget = charBudget;
-  for (const a of chosen) {
-    const block = `### ${a.title}\n${a.content}`.slice(0, budget);
-    if (!block.trim()) break;
-    blocks.push(block);
-    budget -= block.length;
-    if (budget <= 200) break;
+/**
+ * Embeddable Chatbot widget: build chunks from the widget's own Q&A list plus a
+ * free-text knowledge base (split into paragraphs) and return the most relevant.
+ */
+export function retrieveWidgetKnowledge(
+  question: string,
+  qa: { question: string; answer: string }[],
+  knowledgeBase: string,
+  limit = 6,
+  charBudget = 5000,
+): string {
+  const chunks: KnowledgeChunk[] = [];
+  for (const q of qa) {
+    const qq = String(q.question ?? "").trim();
+    const aa = String(q.answer ?? "").trim();
+    if (qq || aa) chunks.push({ title: qq || undefined, text: `Q: ${qq}\nA: ${aa}`, keywords: qq });
   }
-  return blocks.join("\n\n");
+  for (const para of String(knowledgeBase ?? "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)) {
+    chunks.push({ text: para });
+  }
+  return rankKnowledge(question, chunks, limit, charBudget);
 }
