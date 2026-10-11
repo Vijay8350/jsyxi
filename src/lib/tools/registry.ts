@@ -222,10 +222,10 @@ export const TOOLS: ToolDef[] = [
         {
           key: "posts", label: "Posts", type: "list", group: "content", addLabel: "Add post",
           default: [
-            { image: "", caption: "New arrivals ✨", link: "" },
-            { image: "", caption: "Behind the scenes", link: "" },
-            { image: "", caption: "Customer love ❤️", link: "" },
-            { image: "", caption: "Weekend vibes", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-i1/500/500", caption: "New arrivals ✨", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-i2/500/500", caption: "Behind the scenes", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-i3/500/500", caption: "Customer love ❤️", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-i4/500/500", caption: "Weekend vibes", link: "" },
           ],
           itemFields: [
             { key: "image", label: "Image", type: "image", group: "content", default: "" },
@@ -567,8 +567,8 @@ export const TOOLS: ToolDef[] = [
         {
           key: "images", label: "Images", type: "list", group: "content", addLabel: "Add image",
           default: [
-            { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" },
-            { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" }, { src: "", caption: "", alt: "" },
+            { src: "https://picsum.photos/seed/jsyxi-g1/600/600", caption: "Mountain sunrise", alt: "" }, { src: "https://picsum.photos/seed/jsyxi-g2/600/600", caption: "City streets", alt: "" }, { src: "https://picsum.photos/seed/jsyxi-g3/600/600", caption: "Ocean view", alt: "" },
+            { src: "https://picsum.photos/seed/jsyxi-g4/600/600", caption: "Forest trail", alt: "" }, { src: "https://picsum.photos/seed/jsyxi-g5/600/600", caption: "Desert dunes", alt: "" }, { src: "https://picsum.photos/seed/jsyxi-g6/600/600", caption: "Autumn leaves", alt: "" },
           ],
           itemFields: [
             { key: "src", label: "Image URL", type: "image", group: "content", default: "" },
@@ -642,8 +642,8 @@ export const TOOLS: ToolDef[] = [
       tabs: [TABS.content, TABS.layout, TABS.style, TABS.behaviour],
       fields: [
         { key: "heading", label: "Heading", type: "text", group: "content", default: "" },
-        { key: "beforeImage", label: "Before image", type: "image", group: "content", default: "" },
-        { key: "afterImage", label: "After image", type: "image", group: "content", default: "" },
+        { key: "beforeImage", label: "Before image", type: "image", group: "content", default: "https://picsum.photos/seed/jsyxi-ba/900/600?grayscale" },
+        { key: "afterImage", label: "After image", type: "image", group: "content", default: "https://picsum.photos/seed/jsyxi-ba/900/600" },
         { key: "beforeLabel", label: "Before label", type: "text", group: "content", default: "Before" },
         { key: "afterLabel", label: "After label", type: "text", group: "content", default: "After" },
         { key: "orientation", label: "Orientation", type: "select", group: "layout", default: "horizontal",
@@ -675,9 +675,9 @@ export const TOOLS: ToolDef[] = [
         {
           key: "slides", label: "Slides", type: "list", group: "content", addLabel: "Add slide",
           default: [
-            { image: "", title: "Summer Collection", text: "Fresh styles for the season.", ctaLabel: "Shop now", ctaUrl: "" },
-            { image: "", title: "Free Shipping", text: "On all orders over ₹999.", ctaLabel: "Learn more", ctaUrl: "" },
-            { image: "", title: "New Arrivals", text: "Just landed — be the first.", ctaLabel: "Explore", ctaUrl: "" },
+            { image: "https://picsum.photos/seed/jsyxi-s1/1200/500", title: "Summer Collection", text: "Fresh styles for the season.", ctaLabel: "Shop now", ctaUrl: "" },
+            { image: "https://picsum.photos/seed/jsyxi-s2/1200/500", title: "Free Shipping", text: "On all orders over ₹999.", ctaLabel: "Learn more", ctaUrl: "" },
+            { image: "https://picsum.photos/seed/jsyxi-s3/1200/500", title: "New Arrivals", text: "Just landed — be the first.", ctaLabel: "Explore", ctaUrl: "" },
           ],
           itemFields: [
             { key: "image", label: "Image", type: "image", group: "content", default: "" },
@@ -718,10 +718,10 @@ export const TOOLS: ToolDef[] = [
         {
           key: "projects", label: "Projects", type: "list", group: "content", addLabel: "Add project",
           default: [
-            { image: "", title: "Brand Redesign", category: "Branding", description: "A complete visual identity refresh for a modern retail brand.", link: "" },
-            { image: "", title: "Mobile App", category: "Product", description: "End-to-end design and build of an on-demand delivery app.", link: "" },
-            { image: "", title: "Marketing Site", category: "Web", description: "A high-converting landing page and CMS.", link: "" },
-            { image: "", title: "Packaging", category: "Branding", description: "Sustainable packaging design for a skincare line.", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-p1/800/600", title: "Brand Redesign", category: "Branding", description: "A complete visual identity refresh for a modern retail brand.", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-p2/800/600", title: "Mobile App", category: "Product", description: "End-to-end design and build of an on-demand delivery app.", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-p3/800/600", title: "Marketing Site", category: "Web", description: "A high-converting landing page and CMS.", link: "" },
+            { image: "https://picsum.photos/seed/jsyxi-p4/800/600", title: "Packaging", category: "Branding", description: "Sustainable packaging design for a skincare line.", link: "" },
           ],
           itemFields: [
             { key: "image", label: "Cover image", type: "image", group: "content", default: "" },
@@ -1673,7 +1673,7 @@ export const TOOLS: ToolDef[] = [
       fields: [
         { key: "title", label: "Title", type: "text", group: "content", default: "Episode 1 — Getting started" },
         { key: "artist", label: "Subtitle / artist", type: "text", group: "content", default: "The Growth Podcast" },
-        { key: "audioUrl", label: "Audio file URL (mp3)", type: "url", group: "content", default: "" },
+        { key: "audioUrl", label: "Audio file URL (mp3)", type: "url", group: "content", default: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
         { key: "artwork", label: "Artwork image", type: "image", group: "content", default: "" },
         { key: "accentColor", label: "Accent colour", type: "color", group: "style", default: "#0d9488" },
         { key: "bgColor", label: "Background", type: "color", group: "style", default: "#0f172a" },
